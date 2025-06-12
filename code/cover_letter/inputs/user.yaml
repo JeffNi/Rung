@@ -1,0 +1,54 @@
+user_profile: 
+    name: Jeff Ni
+    title: AI Engineer
+    skills: 
+        - machine learning
+        - prompt engineering
+        - Pandas
+        - Matplotlib
+        - Tensorflow
+        - numpy
+        - pytorch
+    courses:
+        - Machine learning
+        - Intro to artificial intelligence
+        - Relational databases
+        - Algorithms
+        - Operating systems
+        - Concurrent programming
+        - Statistics
+        - Linear algebra
+        - Calculus
+        - Data structures
+    experience:
+        AI Programmer at Environment and Climate Change Canada:
+            - Constructed RNN (GRU) timeseries ML model to achieve 88% f1 score for snow prediction from weather features
+            - Developed random forest and RNN models to fill missing satellite data for snow on/off and nutrient modeling
+        Software Engineer at Orderholic Inc.:
+            - Converted over 550,000 rows of historical order data into JSON and text format for training
+            - Fine-tuned Mistral 7B model using Unsloth for automated order to JSON conversion with 99% accuracy
+        Full Stack Developer at Citizencare Health:
+            - Collaborated with cross-functional teams to build a scalable chatbot integrated with a 12GB Postgres database, leveraging GPT-4 for advanced responses
+            - Efficient design only sends relevant information to chatbot, consequently reducing token costs down to <3000 per prompt on average while also eliminating security and hallucination concerns
+        AI and NLP Developer at Smart Waterloo Region:
+            - Enhanced chatbot accuracy by 20% using OpenAI embeddings, resulting in improved understanding of user queries
+            - Proposed and constructed a chatbot test suite, automating a >1 hour testing process
+        Game Developer at AI Land Games:
+            - Crafted 18 new levels in Unity C\# for voice activated english learning game, bringing total to 20
+            - Conceived 6 innovative level concepts to enhance player engagement and retention
+    projects:
+        Conquest of Geometrea:
+            - Implemented an RTS game with 5,000+ lines of code, supporting base construction and troop management against AI opponents
+            - Engineered a modular, object-oriented architecture, facilitating the creation of 14 distinct building types and 10 troop types, enhancing gameplay diversity and strategic options for players
+            - Optimized performance with efficient designs such as object pools and spatial grids to maintain 60fps during battles involving 100+ units
+    goals:
+        - Work on creative and impactful AI projects, especially those that push boundaries
+    values:
+        - autonomy, self sufficiency
+        - creativity, seeking bizarre solutions
+        - equality, fairness and human well being
+        - rebellion, rewriting unfair rules rather than conforming to them
+    interests:
+        - Biology, genetic programming, animal facts
+        - Cognitive science, nature of consciousness and thought, understanding human behaviour
+        - Game design, coming up with fun ideas, creating my own worlds, characters and story

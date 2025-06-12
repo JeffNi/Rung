@@ -1,0 +1,12 @@
+Dear Stratum Team,
+
+Stratum’s unique approach to predicting mineral distributions, using unconventional data, immediately caught my attention when I saw your Machine Learning Developer role. Bringing cutting-edge machine learning into a legacy industry like mining, that’s incredibly interesting. I’m genuinely enthusiastic, so I’m ready to contribute to a team that’s redefining what’s possible.
+
+My experience building and deploying machine learning models feels like a strong match for your work. Especially with time-series data and handling missing information. That’s key. At Environment and Climate Change Canada, I constructed RNN models for snow prediction, and I also developed methods to fill gaps in satellite data. A solid foundation in data processing is something I also bring. I converted over 550,000 rows of historical data for model training, and I’m very comfortable with libraries like Pandas and Numpy. I also appreciate the emphasis on robust systems. At Smart Waterloo Region, I built a chatbot test suite that automated a manual process. I believe that would translate well to improving your ML training pipeline, actually.
+
+"Unconventional data processing" and "novel applications" are the focus at Stratum. That really resonates with me. My personal drive? It's always towards creative, impactful AI projects. I push boundaries, and I explore new solutions. Even if they seem a bit "bizarre" at first. I’m a self-learner by nature, and I'm constantly curious about how things work, really. From animal facts to the nature of consciousness, I want to know. I’m dedicated to understanding complex systems, and I believe that’s essential for tackling the challenges you’re addressing.
+
+I’m incredibly excited about helping to build and improve Stratum’s core services. I'm ready to dive in, and I will learn whatever is necessary to make a real impact. That’s my goal. Thank you for considering my application. I look forward to hearing from you soon.
+
+Sincerely,
+Jeff Ni
