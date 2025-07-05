@@ -1,0 +1,68 @@
+Job Title:
+Full Stack Engineering
+
+Number of Job Openings:
+2
+
+Level:
+
+Senior
+Region:
+ON - Toronto
+
+Job - Address Line One:
+320 Bay St
+
+Job - City:
+Toronto
+
+Job - Province/State:
+Ontario
+
+Job - Postal/Zip Code:
+M5H 4A6
+
+Job - Country:
+Canada
+
+Employment Location Arrangement:
+In-person
+
+Work Term Duration:
+4 month work term
+
+Job Summary:
+Ideogram is on a mission to make professional-quality design accessible to everyone. We're building an AI-native application that helps creative individuals and teams produce high-quality content faster and at a lower cost. We are pushing the boundaries of what's possible with AI, with a focus on creativity and a high standard for trust and safety. Our headquarters is in downtown Toronto, and we have a growing presence in NYC. Read our Ideogram 3.0 and Canvas blog posts, and try our product at ideogram.ai to get a glimpse of what we're building.
+
+Founding Team
+Our founding team consists of world-renowned AI experts including Mohammad Norouzi, Jonathan Ho, William Chan, and Chitwan Saharia. This team has previously led transformative AI projects at Google Brain, UC Berkeley, CMU, and the University of Toronto. Our fundamental work in AI includes: Imagen: Google's text-to-image system, Imagen Video for video synthesis, Denoising Diffusion Models, which is the foundation of the recent generative media transformation.
+
+Job Responsibilities:
+About The Role
+As a Full Stack Engineer, you will build a simple yet elegant product that helps millions of users experience the magic of image and video generation with AI. You will help shape the future of creative applications in the age of AI. You will be a key participant in defining Ideogram's roadmap and product strategy, which will transform and expand the creative economy.
+
+Required Skills:
+What We're Looking For
+
+Experience with design and development of novel, scalable solutions for challenging problems
+Strong data structure and algorithm fundamentals
+Experience in writing scalable and reliable code (e.g., experience with gRPC, Protobufs, MapReduce, an obsession for simplicity).
+Familiarity with Google Cloud Platform (GCP), Amazon Web Services (AWS), or similar cloud platforms
+Strong analytical and problem-solving skills
+Self-starter - able to come up to speed on complex, difficult concepts with minimal assistance
+Experience communicating complex technical issues to technical and non technical team members
+Excitement about generative AI technology and its impact on the creative economy.
+Bachelor's degree in Computer Science, Engineering or related field
+
+Nice to Have Skills
+Engineering experience at tech and product-driven companies
+Have prior experience working closely with ML engineers to developing and deploying machine learning models
+Proficiency in Python, JavaScript, and React
+Passion for building simple and self-explanatory user interfaces
+Possess a track record of rapidly prototyping ideas and bringing them to life
+Exhibit strong people and presentation skills
+
+Company Culture
+We're a single flat team that transcends engineering, research, product, and operation roles. Everyone is willing to do whatever is necessary to make our company and customers successful. We believe that a small, dedicated team with a collaborative culture can move faster and build better and more coherent products than large hierarchical organizations. At Ideogram, we provide mentorship and support to help our employees grow with the company and achieve their ambitious career goals.
+
+Ideogram is committed to welcoming everyone, regardless of gender identity, orientation, or expression. Our mission is to remove exclusivity and barriers and encourage new thinking and perceptions in a space of belonging. It is not about race, gender, or age, it is about the people.

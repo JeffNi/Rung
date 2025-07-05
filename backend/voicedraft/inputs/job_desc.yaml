@@ -1,0 +1,39 @@
+job_profile:
+  title: "Full Stack Engineering"
+  company: "Ideogram"
+  location: "Toronto"
+  address: "320 Bay St"
+  postal: "M5H 4A6"
+  provinceCode: "ON"
+  description: "Ideogram is on a mission to make professional-quality design accessible to everyone. We're building an AI-native application that helps creative individuals and teams produce high-quality content faster and at a lower cost. We are pushing the boundaries of what's possible with AI, with a focus on creativity and a high standard for trust and safety. Our headquarters is in downtown Toronto, and we have a growing presence in NYC. Read our Ideogram 3.0 and Canvas blog posts, and try our product at ideogram.ai to get a glimpse of what we're building."
+  requirements:
+    - "Experience with design and development of novel, scalable solutions for challenging problems"
+    - "Strong data structure and algorithm fundamentals"
+    - "Experience in writing scalable and reliable code (e.g., experience with gRPC, Protobufs, MapReduce, an obsession for simplicity)."
+    - "Familiarity with Google Cloud Platform (GCP), Amazon Web Services (AWS), or similar cloud platforms"
+    - "Strong analytical and problem-solving skills"
+    - "Self-starter - able to come up to speed on complex, difficult concepts with minimal assistance"
+    - "Experience communicating complex technical issues to technical and non technical team members"
+    - "Excitement about generative AI technology and its impact on the creative economy."
+    - "Bachelor's degree in Computer Science, Engineering or related field"
+  responsibilities:
+    - "As a Full Stack Engineer, you will build a simple yet elegant product that helps millions of users experience the magic of image and video generation with AI."
+    - "You will help shape the future of creative applications in the age of AI."
+    - "You will be a key participant in defining Ideogram's roadmap and product strategy, which will transform and expand the creative economy."
+  values:
+    - "small, dedicated team with a collaborative culture"
+    - "mentorship and support to help our employees grow"
+    - "welcoming everyone, regardless of gender identity, orientation, or expression"
+    - "remove exclusivity and barriers and encourage new thinking and perceptions in a space of belonging"
+  keywords:
+    - "Full Stack"
+    - "Engineering"
+    - "AI"
+    - "Generative AI"
+    - "GCP"
+    - "AWS"
+    - "React"
+    - "Python"
+    - "JavaScript"
+  hiring_manager:
+  hiring_manager_title:
