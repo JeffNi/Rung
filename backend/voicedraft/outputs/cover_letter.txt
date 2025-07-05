@@ -1,0 +1,17 @@
+Jeff Ni
+647-679-3263
+jeffni96@gmail.com
+
+2025-07-03
+
+Ideogram
+320 Bay St
+Toronto, ON M5H 4A6
+
+Ideogram's vision to make professional design accessible resonates with my passion for tackling creative challenges with AI. I've fine-tuned large language models like Mistral 7B and built efficient backend systems, such as a GPT-4 chatbot where I significantly cut token costs. I've also optimized performance-critical game systems to maintain high frame rates. This blend of AI development and scalable engineering feels like a fit for a Full Stack role at Ideogram, where I can help build magic for millions.
+
+Building high-performance systems, like optimizing a real-time strategy game to hit 60fps with 100+ units, taught me the value of efficient design. The GPT-4 chatbot I worked on was designed to cut token costs and prevent security issues. I'm drawn to the challenge of making complex AI simple, ensuring robust performance. Contributing to Ideogram's roadmap and shaping how millions interact with creative AI excites me.
+
+Exploring ideogram.ai, especially your 3.0 and Canvas initiatives, reinforced my interest in making high-quality design universally accessible. My knack for finding unconventional solutions,whether optimizing game performance or cutting AI operational costs,comes from a deep curiosity about pushing technology further while keeping it simple. This problem-solving mindset, combined with my full-stack experience, would be a strong asset for developing your next features. I’m also keen to expand my skills and eager to contribute to your roadmap.
+
+I'm drawn to Ideogram's blend of creativity and technical challenge, and excited to build robust, high-performance AI systems that feel intuitive. It’s a chance to contribute to how millions experience the future of creative AI. Thanks for your time. I'm eager to discuss how my skills can contribute to Ideogram's roadmap and look forward to hearing from you.
