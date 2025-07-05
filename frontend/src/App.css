@@ -630,131 +630,59 @@ body {
 
 .cloud {
   position: absolute;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 50px;
-  opacity: 0.7;
-}
-
-.cloud:before,
-.cloud:after {
-  content: '';
-  position: absolute;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 50px;
+  opacity: 0.8;
+  filter: blur(1px);
 }
 
 .cloud1 {
-  width: 100px;
-  height: 40px;
-  top: 70%;
-  left: -100px;
-  animation: float1 20s linear infinite;
-}
-
-.cloud1:before {
-  width: 50px;
-  height: 50px;
-  top: -25px;
-  left: 10px;
-}
-
-.cloud1:after {
-  width: 60px;
+  width: 120px;
   height: 60px;
-  top: -30px;
-  right: 10px;
+  top: 70%;
+  left: -120px;
+  animation: float1 20s linear infinite;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 70%, transparent 100%);
 }
 
 .cloud2 {
-  width: 80px;
-  height: 30px;
+  width: 100px;
+  height: 50px;
   top: 80%;
-  left: -80px;
+  left: -100px;
   animation: float2 25s linear infinite;
   animation-delay: 5s;
-}
-
-.cloud2:before {
-  width: 40px;
-  height: 40px;
-  top: -20px;
-  left: 8px;
-}
-
-.cloud2:after {
-  width: 50px;
-  height: 50px;
-  top: -25px;
-  right: 8px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 70%, transparent 100%);
 }
 
 .cloud3 {
-  width: 120px;
-  height: 50px;
+  width: 140px;
+  height: 70px;
   top: 75%;
-  left: -120px;
+  left: -140px;
   animation: float3 30s linear infinite;
   animation-delay: 10s;
-}
-
-.cloud3:before {
-  width: 60px;
-  height: 60px;
-  top: -30px;
-  left: 15px;
-}
-
-.cloud3:after {
-  width: 70px;
-  height: 70px;
-  top: -35px;
-  right: 15px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.5) 60%, transparent 100%);
 }
 
 .cloud4 {
-  width: 90px;
-  height: 35px;
+  width: 110px;
+  height: 55px;
   top: 85%;
-  left: -90px;
+  left: -110px;
   animation: float1 22s linear infinite;
   animation-delay: 15s;
-}
-
-.cloud4:before {
-  width: 45px;
-  height: 45px;
-  top: -22px;
-  left: 12px;
-}
-
-.cloud4:after {
-  width: 55px;
-  height: 55px;
-  top: -27px;
-  right: 12px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 80%, transparent 100%);
 }
 
 .cloud5 {
-  width: 70px;
-  height: 25px;
+  width: 90px;
+  height: 45px;
   top: 65%;
-  left: -70px;
+  left: -90px;
   animation: float2 28s linear infinite;
   animation-delay: 8s;
-}
-
-.cloud5:before {
-  width: 35px;
-  height: 35px;
-  top: -17px;
-  left: 7px;
-}
-
-.cloud5:after {
-  width: 45px;
-  height: 45px;
-  top: -22px;
-  right: 7px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 75%, transparent 100%);
 }
 
 @keyframes float1 {
