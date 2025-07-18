@@ -66,6 +66,12 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
   const goalsList = useDynamicList();
   const valuesList = useDynamicList();
 
+  const CHIP_MAX = 24;
+  const [editingSkillIdx, setEditingSkillIdx] = useState<number | null>(null);
+  const [editingCourseIdx, setEditingCourseIdx] = useState<number | null>(null);
+  const [editingValueIdx, setEditingValueIdx] = useState<number | null>(null);
+  const [editingGoalIdx, setEditingGoalIdx] = useState<number | null>(null);
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
@@ -398,13 +404,35 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
           </div>
           <div className="form-group">
             <label>Skills</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40, marginBottom: 4 }}>
               {skillsList.items.map((skill, idx) => (
-                <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6' }}>
-                  {skill}
-                  <button type="button" onClick={() => skillsList.removeItem(idx)} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
-                </span>
+                editingSkillIdx === idx ? (
+                  <input
+                    key={idx}
+                    type="text"
+                    value={skill}
+                    autoFocus
+                    onChange={e => skillsList.setItem(idx, e.target.value)}
+                    onBlur={() => setEditingSkillIdx(null)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') setEditingSkillIdx(null);
+                    }}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, marginRight: 0 }}
+                  />
+                ) : (
+                  <span
+                    key={idx}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}
+                    title={skill}
+                    onClick={() => setEditingSkillIdx(idx)}
+                  >
+                    {skill.length > CHIP_MAX ? skill.slice(0, CHIP_MAX) + '...' : skill}
+                    <button type="button" onClick={e => { e.stopPropagation(); skillsList.removeItem(idx); }} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
+                  </span>
+                )
               ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
               <input
                 type="text"
                 placeholder="Add skill"
@@ -413,18 +441,40 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
                 onKeyDown={skillsList.handleInputKeyDown}
                 style={{ minWidth: 100, borderRadius: 16, padding: '4px 12px', fontSize: 14, border: '1px solid #3b82f6', outline: 'none' }}
               />
-              <button type="button" onClick={skillsList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', marginLeft: 2, lineHeight: 1 }}>+</button>
+              <button type="button" onClick={skillsList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>+</button>
             </div>
           </div>
           <div className="form-group">
             <label>Courses</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40, marginBottom: 4 }}>
               {coursesList.items.map((course, idx) => (
-                <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6' }}>
-                  {course}
-                  <button type="button" onClick={() => coursesList.removeItem(idx)} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
-                </span>
+                editingCourseIdx === idx ? (
+                  <input
+                    key={idx}
+                    type="text"
+                    value={course}
+                    autoFocus
+                    onChange={e => coursesList.setItem(idx, e.target.value)}
+                    onBlur={() => setEditingCourseIdx(null)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') setEditingCourseIdx(null);
+                    }}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, marginRight: 0 }}
+                  />
+                ) : (
+                  <span
+                    key={idx}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}
+                    title={course}
+                    onClick={() => setEditingCourseIdx(idx)}
+                  >
+                    {course.length > CHIP_MAX ? course.slice(0, CHIP_MAX) + '...' : course}
+                    <button type="button" onClick={e => { e.stopPropagation(); coursesList.removeItem(idx); }} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
+                  </span>
+                )
               ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
               <input
                 type="text"
                 placeholder="Add course"
@@ -433,18 +483,40 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
                 onKeyDown={coursesList.handleInputKeyDown}
                 style={{ minWidth: 100, borderRadius: 16, padding: '4px 12px', fontSize: 14, border: '1px solid #3b82f6', outline: 'none' }}
               />
-              <button type="button" onClick={coursesList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', marginLeft: 2, lineHeight: 1 }}>+</button>
+              <button type="button" onClick={coursesList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>+</button>
             </div>
           </div>
           <div className="form-group">
             <label>Values</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40, marginBottom: 4 }}>
               {valuesList.items.map((value, idx) => (
-                <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6' }}>
-                  {value}
-                  <button type="button" onClick={() => valuesList.removeItem(idx)} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
-                </span>
+                editingValueIdx === idx ? (
+                  <input
+                    key={idx}
+                    type="text"
+                    value={value}
+                    autoFocus
+                    onChange={e => valuesList.setItem(idx, e.target.value)}
+                    onBlur={() => setEditingValueIdx(null)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') setEditingValueIdx(null);
+                    }}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, marginRight: 0 }}
+                  />
+                ) : (
+                  <span
+                    key={idx}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}
+                    title={value}
+                    onClick={() => setEditingValueIdx(idx)}
+                  >
+                    {value.length > CHIP_MAX ? value.slice(0, CHIP_MAX) + '...' : value}
+                    <button type="button" onClick={e => { e.stopPropagation(); valuesList.removeItem(idx); }} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
+                  </span>
+                )
               ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
               <input
                 type="text"
                 placeholder="Add value"
@@ -453,18 +525,40 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
                 onKeyDown={valuesList.handleInputKeyDown}
                 style={{ minWidth: 100, borderRadius: 16, padding: '4px 12px', fontSize: 14, border: '1px solid #3b82f6', outline: 'none' }}
               />
-              <button type="button" onClick={valuesList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', marginLeft: 2, lineHeight: 1 }}>+</button>
+              <button type="button" onClick={valuesList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>+</button>
             </div>
           </div>
           <div className="form-group">
             <label>Goals</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40, marginBottom: 4 }}>
               {goalsList.items.map((goal, idx) => (
-                <span key={idx} style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6' }}>
-                  {goal}
-                  <button type="button" onClick={() => goalsList.removeItem(idx)} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
-                </span>
+                editingGoalIdx === idx ? (
+                  <input
+                    key={idx}
+                    type="text"
+                    value={goal}
+                    autoFocus
+                    onChange={e => goalsList.setItem(idx, e.target.value)}
+                    onBlur={() => setEditingGoalIdx(null)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') setEditingGoalIdx(null);
+                    }}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, marginRight: 0 }}
+                  />
+                ) : (
+                  <span
+                    key={idx}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}
+                    title={goal}
+                    onClick={() => setEditingGoalIdx(idx)}
+                  >
+                    {goal.length > CHIP_MAX ? goal.slice(0, CHIP_MAX) + '...' : goal}
+                    <button type="button" onClick={e => { e.stopPropagation(); goalsList.removeItem(idx); }} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
+                  </span>
+                )
               ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
               <input
                 type="text"
                 placeholder="Add goal"
@@ -473,7 +567,7 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
                 onKeyDown={goalsList.handleInputKeyDown}
                 style={{ minWidth: 100, borderRadius: 16, padding: '4px 12px', fontSize: 14, border: '1px solid #3b82f6', outline: 'none' }}
               />
-              <button type="button" onClick={goalsList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', marginLeft: 2, lineHeight: 1 }}>+</button>
+              <button type="button" onClick={goalsList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>+</button>
             </div>
           </div>
           <div className="form-group">
