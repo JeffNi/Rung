@@ -33,17 +33,20 @@ const BackgroundStars: React.FC<BackgroundStarsProps> = ({
 
       {/* Shooting Stars */}
       <div className="shooting-stars">
-        {[...Array(10)].map((_, i) => (
-          <div 
-            key={`shooting-${i}`} 
-            className="shooting-star" 
-            style={{
-              top: `${Math.random() * 60}%`,
-              animationDelay: `${Math.random() * 30 + 10}s`,
-              animationDuration: `${2 + Math.random() * 2}s`
-            }}
-          ></div>
-        ))}
+        {[...Array(10)].map((_, i) => {
+          const duration = 2 + Math.random() * 2;
+          return (
+            <div 
+              key={`shooting-${i}`} 
+              className="shooting-star" 
+              style={{
+                top: `${Math.random() * 60}%`,
+                animationDelay: `${Math.random() * 30 + 10}s`,
+                '--animation-duration': `${duration}s`
+              } as React.CSSProperties}
+            ></div>
+          );
+        })}
       </div>
       
       {children}

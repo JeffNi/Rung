@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import BackgroundStars from './BackgroundStars';
 
-const CoverLetterPage: React.FC = () => {
+const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCurrentPage }) => {
   const [userProfile, setUserProfile] = useState({
     name: '',
     title: '',
@@ -109,84 +109,13 @@ const CoverLetterPage: React.FC = () => {
 
       <div className="cover-letter-layout">
         <div className="form-column">
-          <div className="form-section">
-            <h3>Your Profile</h3>
-            <div className="form-group">
-              <label htmlFor="name">Full Name</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={userProfile.name}
-                onChange={handleUserProfileChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="title">Professional Title</label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={userProfile.title}
-                onChange={handleUserProfileChange}
-              />
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={userProfile.email}
-                  onChange={handleUserProfileChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="phone">Phone</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={userProfile.phone}
-                  onChange={handleUserProfileChange}
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="skills">Skills (comma-separated)</label>
-              <textarea
-                id="skills"
-                name="skills"
-                value={userProfile.skills}
-                onChange={handleUserProfileChange}
-                rows={3}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="experience">Work Experience</label>
-              <textarea
-                id="experience"
-                name="experience"
-                value={userProfile.experience}
-                onChange={handleUserProfileChange}
-                rows={4}
-                placeholder="Describe your relevant work experience..."
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="projects">Projects</label>
-              <textarea
-                id="projects"
-                name="projects"
-                value={userProfile.projects}
-                onChange={handleUserProfileChange}
-                rows={3}
-                placeholder="Describe your relevant projects..."
-              />
-            </div>
+          <div className="form-actions" style={{ marginBottom: '2rem' }}>
+            <button 
+              onClick={() => setCurrentPage('edit-profile')}
+              className="btn-secondary"
+            >
+              Edit Profile
+            </button>
           </div>
 
           <div className="form-section">

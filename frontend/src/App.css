@@ -835,6 +835,7 @@ body {
   border-radius: 0.375rem;
   font-size: 0.875rem;
   transition: border-color 0.2s ease;
+  background-color: #eff6ff;
 }
 
 .form-group input:focus,
@@ -842,6 +843,7 @@ body {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background-color: white;
 }
 
 .form-group textarea {
@@ -1032,7 +1034,7 @@ body {
   height: 4px;
   background: transparent;
   border-radius: 50%;
-  animation: shooting-star-move 6s linear infinite;
+  animation: shooting-star-move var(--animation-duration, 6s) linear infinite;
   opacity: 0;
   transform: rotate(-45deg);
 }
@@ -1045,14 +1047,14 @@ body {
   width: 0px;
   height: 2px;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), #ffffff);
-  transform: translateX(0px) rotate(135deg);
+  transform: translateX(0px) rotate(15deg);
   border-radius: 1px;
-  animation: tail-grow 6s linear infinite, tail-fade 6s linear infinite;
+  animation: tail-grow var(--animation-duration, 6s) linear infinite, tail-fade var(--animation-duration, 6s) linear infinite;
 }
 
 @keyframes shooting-star-move {
   0% {
-    transform: translateX(-100px) translateY(0) rotate(-45deg);
+    transform: translateX(calc(100vw + 100px)) translateY(0) rotate(15deg);
     opacity: 0;
   }
   5% {
@@ -1062,7 +1064,7 @@ body {
     opacity: 1;
   }
   100% {
-    transform: translateX(calc(100vw + 100px)) translateY(200px) rotate(-45deg);
+    transform: translateX(-100px) translateY(calc((100vw + 100px) * 0.3)) rotate(15deg);
     opacity: 0;
   }
 }
@@ -1070,19 +1072,19 @@ body {
 @keyframes tail-grow {
   0% {
     width: 0px;
-    transform: translateX(0px) rotate(55deg);
+    transform: translateX(0px) rotate(150deg);
   }
   10% {
     width: 30px;
-    transform: translateX(-30px) rotate(55deg);
+    transform: translateX(-30px) rotate(150deg);
   }
   50% {
-    width: 90px;
-    transform: translateX(-90px) rotate(55deg);
+    width: 120px;
+    transform: translateX(-90px) rotate(150deg);
   }
   100% {
-    width: 120px;
-    transform: translateX(-120px) rotate(55deg);
+    width: 300px;
+    transform: translateX(-120px) rotate(150deg);
   }
 }
 
@@ -1099,4 +1101,220 @@ body {
   100% {
     opacity: 0;
   }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 1rem;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: #f1f5f9;
+  color: #374151;
+}
+
+.modal-body {
+  padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  color: #1e293b;
+}
+
+.modal-body input,
+.modal-body textarea {
+  color: #1e293b;
+}
+
+/* Ensure all form inputs and textareas have proper text color */
+.form-group input,
+.form-group textarea {
+  color: #1e293b;
+}
+
+/* Custom scrollbar for modal */
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #eff6ff;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #bfdbfe;
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #93c5fd;
+}
+
+/* Custom scrollbar for textareas */
+.form-group textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.form-group textarea::-webkit-scrollbar-track {
+  background: #eff6ff;
+  border-radius: 4px;
+}
+
+.form-group textarea::-webkit-scrollbar-thumb {
+  background: #bfdbfe;
+  border-radius: 4px;
+}
+
+.form-group textarea::-webkit-scrollbar-thumb:hover {
+  background: #93c5fd;
+}
+
+.modal-loading {
+  padding: 3rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 1.125rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border-top: 1px solid #e2e8f0;
+  position: sticky;
+  bottom: 0;
+  background: white;
+  z-index: 20;
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.modal-footer .btn-primary,
+.modal-footer .btn-secondary {
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  min-width: 100px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  margin-top: 0;
+}
+
+/* Profile button styles */
+.profile-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  min-height: 60px;
+  padding: 0.5rem 0;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.profile-details h4 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.profile-details p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.btn-profile {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-profile:hover {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  transform: translateY(-1px);
+}
+
+.btn-profile:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
 }

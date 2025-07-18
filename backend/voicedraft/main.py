@@ -1,7 +1,7 @@
-from cl_generator import generate_cl
+from cl_generator import get_best_cl
 
 def main():
-    generate_cl()
+    get_best_cl()
 
 if __name__ == "__main__":
     main()

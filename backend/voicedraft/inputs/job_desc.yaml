@@ -1,10 +1,10 @@
 job_profile:
   title: "Full Stack Engineering"
-  company: "Ideogram"
-  location: "Toronto"
+  company: Ideogram
+  location: Toronto, ON
   address: "320 Bay St"
-  postal: "M5H 4A6"
-  provinceCode: "ON"
+  postal: M5H 4A6
+  provinceCode: ON
   description: "Ideogram is on a mission to make professional-quality design accessible to everyone. We're building an AI-native application that helps creative individuals and teams produce high-quality content faster and at a lower cost. We are pushing the boundaries of what's possible with AI, with a focus on creativity and a high standard for trust and safety. Our headquarters is in downtown Toronto, and we have a growing presence in NYC. Read our Ideogram 3.0 and Canvas blog posts, and try our product at ideogram.ai to get a glimpse of what we're building."
   requirements:
     - "Experience with design and development of novel, scalable solutions for challenging problems"
@@ -21,10 +21,10 @@ job_profile:
     - "You will help shape the future of creative applications in the age of AI."
     - "You will be a key participant in defining Ideogram's roadmap and product strategy, which will transform and expand the creative economy."
   values:
-    - "small, dedicated team with a collaborative culture"
-    - "mentorship and support to help our employees grow"
-    - "welcoming everyone, regardless of gender identity, orientation, or expression"
-    - "remove exclusivity and barriers and encourage new thinking and perceptions in a space of belonging"
+    - "A small, dedicated team with a collaborative culture can move faster and build better and more coherent products than large hierarchical organizations."
+    - "Mentorship and support to help our employees grow with the company and achieve their ambitious career goals."
+    - "Welcoming everyone, regardless of gender identity, orientation, or expression."
+    - "Remove exclusivity and barriers and encourage new thinking and perceptions in a space of belonging."
   keywords:
     - "Full Stack"
     - "Engineering"
@@ -32,8 +32,8 @@ job_profile:
     - "Generative AI"
     - "GCP"
     - "AWS"
-    - "React"
     - "Python"
     - "JavaScript"
+    - "React"
   hiring_manager:
   hiring_manager_title:

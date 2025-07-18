@@ -9,6 +9,7 @@ from utils import generate_with_retry, load_file, load_yaml
 from company_info import generate_job_yaml
 from user_tuning import generate_style_prompt, personalize
 from fixer import generate_fixed, remove_bloat
+from evaluator import evaluate_cl, compare_cls
 
 
 # This file puts together the necessary information and generates the cover letter
@@ -155,11 +156,7 @@ def generate_cl(par_count=4):
 
     cover_letter = header + "\n\n" + cover_letter
 
-    os.makedirs("outputs", exist_ok=True)
-    output_path = os.path.join("outputs", f"cover_letter.txt")
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(cover_letter)
+    return cover_letter
 
     # humanized = clean_text(response)
     # final = generate_fixed(humanized)
@@ -169,8 +166,26 @@ def generate_cl(par_count=4):
     # with open(output_path, "w", encoding="utf-8") as f:
     #     f.write(response)
 
+def get_best_cl(num=3):
+    cover_letter = generate_cl()
+
+    if (num > 1):
+        for i in range(num):
+            cover_letter2 = generate_cl()
+            eval1 = evaluate_cl(cover_letter)
+            eval2 = evaluate_cl(cover_letter2)
+            comparison = compare_cls(cover_letter, eval1, cover_letter2, eval2)
+            if comparison == "1":
+                cover_letter = cover_letter2
+
+    os.makedirs("outputs", exist_ok=True)
+    output_path = os.path.join("outputs", f"cover_letter.txt")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(cover_letter)
+
 def main():
-    generate_cl()
+    get_best_cl()
 
 if __name__ == "__main__":
     main()

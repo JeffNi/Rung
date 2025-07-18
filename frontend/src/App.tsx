@@ -5,6 +5,7 @@ import ResumePage from './components/ResumePage';
 import CoverLetterPage from './components/CoverLetterPage';
 import LoginPage from './components/LoginPage';
 import AccountPage from './components/AccountPage';
+import EditProfilePage from './components/EditProfilePage';
 import { useParallax } from './hooks/useParallax';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -37,7 +38,9 @@ function App() {
       case 'resume':
         return <ResumePage />;
       case 'cover-letter':
-        return <CoverLetterPage />;
+        return <CoverLetterPage setCurrentPage={setCurrentPage} />;
+      case 'edit-profile':
+        return <EditProfilePage setCurrentPage={setCurrentPage} />;
       case 'login':
         return <LoginPage />;
       case 'account':
