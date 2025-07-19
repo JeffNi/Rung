@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParallax } from '../hooks/useParallax';
+import '../styles/components/HomePage.css';
 
 const HomePage: React.FC = () => {
   const scrollY = useParallax();

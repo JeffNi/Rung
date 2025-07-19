@@ -3,6 +3,7 @@ import { auth, db } from '../firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import type { UserProfile } from './ProfileModal';
+import '../styles/components/ProfileModal.css';
 
 // Add Experience type
 interface Experience {
@@ -65,6 +66,8 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
   const coursesList = useDynamicList();
   const goalsList = useDynamicList();
   const valuesList = useDynamicList();
+  const interestsList = useDynamicList();
+  const [editingInterestIdx, setEditingInterestIdx] = useState<number | null>(null);
 
   const CHIP_MAX = 24;
   const [editingSkillIdx, setEditingSkillIdx] = useState<number | null>(null);
@@ -108,6 +111,7 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
         coursesList.setItems(data.courses || []);
         goalsList.setItems(data.goals || []);
         valuesList.setItems(data.values || []);
+        interestsList.setItems(data.interests || []);
         setFormData({
           ...formData,
           name: data.name || '',
@@ -254,7 +258,7 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
         projects: projectsObj,
         goals: goalsList.items.filter(s => s.trim()),
         values: valuesList.items.filter(s => s.trim()),
-        interests: formData.interests.split(',').map(s => s.trim()).filter(s => s),
+        interests: interestsList.items.filter(s => s.trim()),
         writingSample: formData.writingSample
       };
       await setDoc(doc(db, 'userProfiles', user.uid), newProfile);
@@ -568,6 +572,46 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
                 style={{ minWidth: 100, borderRadius: 16, padding: '4px 12px', fontSize: 14, border: '1px solid #3b82f6', outline: 'none' }}
               />
               <button type="button" onClick={goalsList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>+</button>
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Interests</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40, marginBottom: 4 }}>
+              {interestsList.items.map((interest, idx) => (
+                editingInterestIdx === idx ? (
+                  <input
+                    key={idx}
+                    type="text"
+                    value={interest}
+                    autoFocus
+                    onChange={e => interestsList.setItem(idx, e.target.value)}
+                    onBlur={() => setEditingInterestIdx(null)}
+                    onKeyDown={e => { if (e.key === 'Enter') setEditingInterestIdx(null); }}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, marginRight: 0 }}
+                  />
+                ) : (
+                  <span
+                    key={idx}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}
+                    title={interest}
+                    onClick={() => setEditingInterestIdx(idx)}
+                  >
+                    {interest.length > CHIP_MAX ? interest.slice(0, CHIP_MAX) + '...' : interest}
+                    <button type="button" onClick={e => { e.stopPropagation(); interestsList.removeItem(idx); }} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
+                  </span>
+                )
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+              <input
+                type="text"
+                placeholder="Add interest"
+                value={interestsList.input}
+                onChange={e => interestsList.setInput(e.target.value)}
+                onKeyDown={interestsList.handleInputKeyDown}
+                style={{ minWidth: 100, borderRadius: 16, padding: '4px 12px', fontSize: 14, border: '1px solid #3b82f6', outline: 'none' }}
+              />
+              <button type="button" onClick={interestsList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>+</button>
             </div>
           </div>
           <div className="form-group">

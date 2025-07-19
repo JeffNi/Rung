@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParallax } from '../hooks/useParallax';
+import '../styles/components/BackgroundStars.css';
 
 interface BackgroundStarsProps {
   children: React.ReactNode;

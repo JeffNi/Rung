@@ -1,0 +1,226 @@
+/* Parallax Background */
+.parallax-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 200vh;
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform;
+  transition: transform 0.1s ease-out;
+}
+
+/* Stars Animation */
+.stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle infinite;
+  transition: transform 0.1s ease-out;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+/* Clouds Animation */
+.clouds {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cloud {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50px;
+  opacity: 0.8;
+  filter: blur(1px);
+}
+
+.cloud1 {
+  width: 120px;
+  height: 60px;
+  top: 70%;
+  left: -120px;
+  animation: float1 20s linear infinite;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 70%, transparent 100%);
+}
+
+.cloud2 {
+  width: 100px;
+  height: 50px;
+  top: 80%;
+  left: -100px;
+  animation: float2 25s linear infinite;
+  animation-delay: 5s;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 70%, transparent 100%);
+}
+
+.cloud3 {
+  width: 140px;
+  height: 70px;
+  top: 75%;
+  left: -140px;
+  animation: float3 30s linear infinite;
+  animation-delay: 10s;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.5) 60%, transparent 100%);
+}
+
+.cloud4 {
+  width: 110px;
+  height: 55px;
+  top: 85%;
+  left: -110px;
+  animation: float1 22s linear infinite;
+  animation-delay: 15s;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 80%, transparent 100%);
+}
+
+.cloud5 {
+  width: 90px;
+  height: 45px;
+  top: 65%;
+  left: -90px;
+  animation: float2 28s linear infinite;
+  animation-delay: 8s;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 75%, transparent 100%);
+}
+
+@keyframes float1 {
+  0% {
+    left: -100px;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes float2 {
+  0% {
+    left: -80px;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes float3 {
+  0% {
+    left: -120px;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Shooting Stars */
+.shooting-stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.shooting-star {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: transparent;
+  border-radius: 50%;
+  animation: shooting-star-move var(--animation-duration, 6s) linear infinite;
+  opacity: 0;
+  transform: rotate(-45deg);
+}
+
+.shooting-star::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 0px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), #ffffff);
+  transform: translateX(0px) rotate(15deg);
+  border-radius: 1px;
+  animation: tail-grow var(--animation-duration, 6s) linear infinite, tail-fade var(--animation-duration, 6s) linear infinite;
+}
+
+@keyframes shooting-star-move {
+  0% {
+    transform: translateX(calc(100vw + 100px)) translateY(0) rotate(15deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100px) translateY(calc((100vw + 100px) * 0.3)) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+@keyframes tail-grow {
+  0% {
+    width: 0px;
+    transform: translateX(0px) rotate(150deg);
+  }
+  10% {
+    width: 30px;
+    transform: translateX(-30px) rotate(150deg);
+  }
+  50% {
+    width: 120px;
+    transform: translateX(-90px) rotate(150deg);
+  }
+  100% {
+    width: 300px;
+    transform: translateX(-120px) rotate(150deg);
+  }
+}
+
+@keyframes tail-fade {
+  0% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+} 

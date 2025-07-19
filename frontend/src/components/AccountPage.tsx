@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import type { User } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import '../styles/components/AccountPage.css';
 import BackgroundStars from './BackgroundStars';
 
 const AccountPage: React.FC = () => {

@@ -1,0 +1,46 @@
+/* Resume Page Styles */
+.resume-page {
+  position: relative;
+  color: #1e293b;
+  min-height: calc(100vh - 64px);
+  z-index: 10;
+  padding: 2rem 4rem;
+}
+
+.resume-page .page-header h1 {
+  color: white;
+  text-align: center;
+}
+
+.resume-page .page-header p {
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+/* Resume page specific styles */
+.resume-form + .page-header,
+.page-header + .resume-form {
+  text-align: center;
+}
+
+.resume-form .form-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  margin-bottom: 2rem;
+}
+
+.resume-form .form-section h3 {
+  color: #1e293b;
+}
+
+.resume-form .form-group label {
+  color: #374151;
+}
+
+.resume-form .form-group input,
+.resume-form .form-group textarea {
+  color: #1e293b;
+  background: white;
+} 

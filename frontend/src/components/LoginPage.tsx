@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail 
 } from 'firebase/auth';
+import '../styles/components/LoginPage.css';
 import BackgroundStars from './BackgroundStars';
 
 const LoginPage: React.FC = () => {

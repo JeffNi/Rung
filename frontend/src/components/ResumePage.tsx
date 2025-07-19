@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParallax } from '../hooks/useParallax';
+import '../styles/components/ResumePage.css';
 
 const ResumePage: React.FC = () => {
   const scrollY = useParallax();
