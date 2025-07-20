@@ -89,8 +89,7 @@ Remove generic suffixes like "LLC", "Inc", "Technologies", "Solutions", "Vision"
 
 Keep distinctive names like "Goldman Sachs", "Procter & Gamble", or "Bank of America" intact.
 
-Return only the core, identifiable name (e.g. "Virtek Vision" -> "virtek", "Bree Technologies LLC" -> "bree", but "Goldman Sachs" -> "Goldman Sachs").
-Format the result in lowercase unless capitalization is meaningful (e.g. acronyms).
+Return only the core, identifiable name (e.g. "Virtek Vision" -> "Virtek", "Bree Technologies LLC" -> "Bree", but "Goldman Sachs" -> "Goldman Sachs").
 
 Here is the company name to shorten:
 {name}"""

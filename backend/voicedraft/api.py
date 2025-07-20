@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
@@ -6,8 +6,6 @@ import os
 import tempfile
 import yaml
 from pathlib import Path
-from dotenv import load_dotenv
-import google.generativeai as genai
 from utils import generate_with_retry, load_file, load_yaml
 from company_info import generate_job_yaml
 from user_tuning import generate_style_prompt, personalize
@@ -15,11 +13,6 @@ from fixer import generate_fixed, remove_bloat
 from cl_generator import get_best_cl, build_header_prompt
 from datetime import date
 import re
-
-# Load environment variables
-dotenv_path = Path("../.env")
-load_dotenv(dotenv_path=dotenv_path)
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 app = FastAPI(title="Cover Letter Generator API", version="1.0.0")
 
@@ -83,69 +76,77 @@ class CoverLetterResponse(BaseModel):
     cover_letter: str
     message: str
 
-def create_temp_user_yaml(user_profile: UserProfile) -> str:
-    """Convert user profile to YAML format and save to temp file"""
+def create_temp_user_yaml(user_profile: dict) -> str:
+    """Convert user profile dict to YAML format and save to temp file"""
+    # Normalize experience
+    experience = {}
+    for exp in user_profile.get("experience", []):
+        title = exp.get("title", "")
+        company = exp.get("company", "")
+        key = f"{title} at {company}".strip()
+        achievements = exp.get("achievements", [])
+        experience[key] = achievements
+    # Normalize projects
+    projects = {}
+    for proj in user_profile.get("projects", []):
+        name = proj.get("name", "")
+        description = proj.get("description", [])
+        projects[name] = description
+        
     user_data = {
         "user_profile": {
-            "name": user_profile.name,
-            "title": user_profile.title,
+            "name": user_profile.get("name", ""),
+            "title": user_profile.get("title", ""),
             "contact": {
-                "email": user_profile.contact.email,
-                "phone": user_profile.contact.phone
+                "email": user_profile.get("contact", {}).get("email", ""),
+                "phone": user_profile.get("contact", {}).get("phone", "")
             },
-            "skills": user_profile.skills,
-            "courses": user_profile.courses,
-            "experience": {
-                f"{exp.title} at {exp.company}": exp.achievements
-                for exp in user_profile.experience
-            },
-            "projects": {
-                project.name: project.description
-                for project in user_profile.projects
-            },
-            "goals": user_profile.goals,
-            "values": user_profile.values,
-            "interests": user_profile.interests
+            "skills": user_profile.get("skills", []),
+            "courses": user_profile.get("courses", []),
+            "experience": experience,
+            "projects": projects,
+            "goals": user_profile.get("goals", []),
+            "values": user_profile.get("values", []),
+            "interests": user_profile.get("interests", [])
         }
     }
-    
     return yaml.dump(user_data, sort_keys=False)
 
-def create_temp_job_yaml(job_description: JobDescription) -> str:
-    """Convert job description to YAML format and save to temp file"""
+def create_temp_job_yaml(job_description: dict) -> str:
+    """Convert job description dict to YAML format and save to temp file"""
     job_data = {
         "job_profile": {
-            "title": job_description.title,
-            "company": job_description.company,
-            "location": job_description.location,
-            "address": getattr(job_description, "address", ""),
-            "postal": getattr(job_description, "postal", ""),
-            "provinceCode": getattr(job_description, "provinceCode", ""),
-            "description": getattr(job_description, "summary", ""),
-            "requirements": getattr(job_description, "required_skills", []),
-            "responsibilities": getattr(job_description, "responsibilities", []),
-            "values": getattr(job_description, "values", []),
-            "keywords": getattr(job_description, "keywords", []),
-            "hiring_manager": getattr(job_description, "hiring_manager", ""),
-            "hiring_manager_title": getattr(job_description, "hiring_manager_title", "")
+            "title": job_description.get("title", ""),
+            "company": job_description.get("company", ""),
+            "location": job_description.get("location", ""),
+            "address": job_description.get("address", ""),
+            "postal": job_description.get("postal", ""),
+            "provinceCode": job_description.get("provinceCode", ""),
+            "description": job_description.get("summary", ""),
+            "requirements": job_description.get("required_skills", []),
+            "responsibilities": job_description.get("responsibilities", []),
+            "values": job_description.get("values", []),
+            "keywords": job_description.get("keywords", []),
+            "hiring_manager": job_description.get("hiring_manager", ""),
+            "hiring_manager_title": job_description.get("hiring_manager_title", "")
         }
     }
     return yaml.dump(job_data, sort_keys=False)
 
 @app.post("/generate-cover-letter", response_model=CoverLetterResponse)
-async def generate_cover_letter(request: CoverLetterRequest):
+async def generate_cover_letter(request: Request):
     try:
-        # Convert request data to YAML format
-        user_yaml = create_temp_user_yaml(request.user_profile)
+        data = await request.json()
+        user_profile = data.get('user_profile')
+        job_description = data.get('job_description')
+        writing_sample = data.get('writing_sample', '')
+        paragraph_count = data.get('paragraph_count', 4)
+        api_key = data.get('api_key', '')
 
-        # Generate job YAML using the AI model
-        job_yaml = generate_job_yaml(request.job_description)
-
-        writing_sample = request.writing_sample
-        # Use writing_sample as needed in your pipeline
-
-        # Generate the complete cover letter using get_best_cl
-        final_cover_letter = get_best_cl(user_yaml, job_yaml, writing_sample, request.paragraph_count)
+        user_yaml = create_temp_user_yaml(user_profile)
+        job_yaml = generate_job_yaml(job_description)
+        
+        final_cover_letter = get_best_cl(user_yaml, job_yaml, writing_sample, paragraph_count, api_key=api_key)
 
         return CoverLetterResponse(
             cover_letter=final_cover_letter,
