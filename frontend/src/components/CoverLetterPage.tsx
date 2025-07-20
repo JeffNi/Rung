@@ -167,7 +167,8 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
           },
           job_description: jobDescription.description,
           writing_sample: writingSample || '',
-          paragraph_count: 4
+          paragraph_count: 4,
+          api_key: localStorage.getItem('apiKey') || ''
         })
       });
 
