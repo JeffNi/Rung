@@ -35,13 +35,37 @@ suggestion: how to fix it clearly
 
 Do not rewrite the letter or include your reasoning outside of the YAML."""
 
-def evaluate_cl():
+def generate_comparison_prompt(cl1, eval1, cl2, eval2):
+    return f"""You are a critical reviewer comparing two cover letters for the same job. Each letter has already been professionally evaluated for clarity, relevance, tone, specificity, and persuasiveness.
+
+Use the evaluator feedback and your own judgment to determine which letter is better.
+
+Respond with a single number:
+- **0** if the first letter is better
+- **1** if the second letter is better
+
+Do not explain your reasoning or include any other text.
+
+Evaluation of Letter 1:
+{eval1}
+
+Evaluation of Letter 2:
+{eval2}
+
+Cover Letter 1:
+{cl1}
+
+Cover Letter 2:
+{cl2}
+"""
+
+
+def evaluate_cl(cl):
     dotenv_path = Path("../.env")
     load_dotenv(dotenv_path=dotenv_path)
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-    cl = load_file("outputs/cover_letter.txt")
-    eval_yaml = load_file("input/evaluation.yaml")
+    eval_yaml = load_file("inputs/evaluation.yaml")
     prompt = generate_review_prompt(cl, eval_yaml)
 
     model = "gemini-2.5-flash-preview-05-20"
@@ -52,4 +76,16 @@ def evaluate_cl():
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(response)
+    return response
+
+
+def compare_cls(cl1, eval1, cl2, eval2):
+    dotenv_path = Path("../.env")
+    load_dotenv(dotenv_path=dotenv_path)
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+    prompt = generate_comparison_prompt(cl1, eval1, cl2, eval2)
+    model = "gemini-2.5-flash-preview-05-20"
+    response = generate_with_retry(model, prompt, max_retries=1)
+
     return response

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParallax } from '../hooks/useParallax';
+import '../styles/components/ResumePage.css';
 
 const ResumePage: React.FC = () => {
   const scrollY = useParallax();
@@ -47,17 +48,20 @@ const ResumePage: React.FC = () => {
 
       {/* Shooting Stars */}
       <div className="shooting-stars">
-        {[...Array(10)].map((_, i) => (
-          <div 
-            key={`shooting-${i}`} 
-            className="shooting-star" 
-            style={{
-              top: `${Math.random() * 60}%`,
-              animationDelay: `${Math.random() * 30 + 10}s`,
-              animationDuration: `${2 + Math.random() * 2}s`
-            }}
-          ></div>
-        ))}
+        {[...Array(10)].map((_, i) => {
+          const duration = 2 + Math.random() * 2;
+          return (
+            <div 
+              key={`shooting-${i}`} 
+              className="shooting-star" 
+              style={{
+                top: `${Math.random() * 60}%`,
+                animationDelay: `${Math.random() * 30 + 10}s`,
+                '--animation-duration': `${duration}s`
+              } as React.CSSProperties}
+            ></div>
+          );
+        })}
       </div>
       
       <div className="page-header">
