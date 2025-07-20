@@ -12,7 +12,7 @@ from utils import generate_with_retry, load_file, load_yaml
 from company_info import generate_job_yaml
 from user_tuning import generate_style_prompt, personalize
 from fixer import generate_fixed, remove_bloat
-from cl_generator import build_cover_letter_prompt, build_header_prompt
+from cl_generator import get_best_cl, build_header_prompt
 from datetime import date
 import re
 
@@ -26,7 +26,12 @@ app = FastAPI(title="Cover Letter Generator API", version="1.0.0")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # React dev server
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ],  # React and Vite dev servers
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,7 +75,8 @@ class JobDescription(BaseModel):
 
 class CoverLetterRequest(BaseModel):
     user_profile: UserProfile
-    job_description: JobDescription
+    job_description: str  # Now a string (pasted job description)
+    writing_sample: str
     paragraph_count: int = 4
 
 class CoverLetterResponse(BaseModel):
@@ -108,16 +114,22 @@ def create_temp_user_yaml(user_profile: UserProfile) -> str:
 def create_temp_job_yaml(job_description: JobDescription) -> str:
     """Convert job description to YAML format and save to temp file"""
     job_data = {
-        "job_title": job_description.title,
-        "company": job_description.company,
-        "location": job_description.location,
-        "summary": job_description.summary,
-        "responsibilities": job_description.responsibilities,
-        "required_skills": job_description.required_skills,
-        "nice_to_have_skills": job_description.nice_to_have_skills or [],
-        "company_culture": job_description.company_culture or ""
+        "job_profile": {
+            "title": job_description.title,
+            "company": job_description.company,
+            "location": job_description.location,
+            "address": getattr(job_description, "address", ""),
+            "postal": getattr(job_description, "postal", ""),
+            "provinceCode": getattr(job_description, "provinceCode", ""),
+            "description": getattr(job_description, "summary", ""),
+            "requirements": getattr(job_description, "required_skills", []),
+            "responsibilities": getattr(job_description, "responsibilities", []),
+            "values": getattr(job_description, "values", []),
+            "keywords": getattr(job_description, "keywords", []),
+            "hiring_manager": getattr(job_description, "hiring_manager", ""),
+            "hiring_manager_title": getattr(job_description, "hiring_manager_title", "")
+        }
     }
-    
     return yaml.dump(job_data, sort_keys=False)
 
 @app.post("/generate-cover-letter", response_model=CoverLetterResponse)
@@ -125,50 +137,20 @@ async def generate_cover_letter(request: CoverLetterRequest):
     try:
         # Convert request data to YAML format
         user_yaml = create_temp_user_yaml(request.user_profile)
-        job_yaml = create_temp_job_yaml(request.job_description)
-        
-        # Generate company description for header
-        company_desc = f"""
-Company: {request.job_description.company}
-Location: {request.job_description.location}
-Summary: {request.job_description.summary}
-        """.strip()
-        
-        # Generate header
-        header_prompt = build_header_prompt(company_desc, user_yaml, date.today())
-        model = "gemini-2.0-flash"
-        header = generate_with_retry(model, header_prompt, max_retries=1)
-        
-        # Generate paragraphs
-        paragraphs = []
-        model = "gemini-2.5-flash-preview-05-20"
-        
-        for i in range(request.paragraph_count):
-            # Load template for this paragraph
-            template_path = f"inputs/templates/template_p{i+1}.txt"
-            template = load_file(template_path)
-            
-            previous = "\n\n".join(paragraphs)
-            
-            prompt = build_cover_letter_prompt(template, user_yaml, job_yaml, previous)
-            response = generate_with_retry(model, prompt, max_retries=2)
-            response = generate_fixed(response)
-            
-            paragraphs.append(response)
-        
-        # Combine and clean
-        cover_letter = "\n\n".join(paragraphs)
-        cover_letter = remove_bloat(cover_letter)
-        cover_letter = re.sub(r'—', ',', cover_letter)
-        
-        # Add header
-        final_cover_letter = header + "\n\n" + cover_letter
-        
+
+        # Generate job YAML using the AI model
+        job_yaml = generate_job_yaml(request.job_description)
+
+        writing_sample = request.writing_sample
+        # Use writing_sample as needed in your pipeline
+
+        # Generate the complete cover letter using get_best_cl
+        final_cover_letter = get_best_cl(user_yaml, job_yaml, writing_sample, request.paragraph_count)
+
         return CoverLetterResponse(
             cover_letter=final_cover_letter,
             message="Cover letter generated successfully!"
         )
-        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating cover letter: {str(e)}")
 

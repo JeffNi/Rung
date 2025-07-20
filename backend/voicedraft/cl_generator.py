@@ -5,14 +5,33 @@ from humanizer import clean_text
 from pathlib import Path
 from dotenv import load_dotenv
 import google.generativeai as genai
+import yaml
 from utils import generate_with_retry, load_file, load_yaml
-from company_info import generate_job_yaml
+from company_info import generate_job_yaml, get_shortened_name
 from user_tuning import generate_style_prompt, personalize
 from fixer import generate_fixed, remove_bloat
 from evaluator import evaluate_cl, compare_cls
 
 
 # This file puts together the necessary information and generates the cover letter
+
+def yaml_to_dict(yaml_string: str) -> dict:
+    """
+    Convert a YAML string to a Python dictionary.
+    
+    Args:
+        yaml_string (str): A string containing YAML-formatted data
+        
+    Returns:
+        dict: The parsed YAML data as a Python dictionary
+        
+    Raises:
+        yaml.YAMLError: If the YAML string is malformed
+    """
+    try:
+        return yaml.safe_load(yaml_string)
+    except yaml.YAMLError as e:
+        raise yaml.YAMLError(f"Failed to parse YAML string: {e}")
 
 def build_cover_letter_prompt(template: str, user_yaml: str, job_yaml: str, previous:str = "") -> str:
     return f"""
@@ -61,6 +80,7 @@ Keep paragraphs between 100 and 140 words.
 Write a short, varied paragraph. No headers, markdown, or commentary — just the final plain text letter.
 """
 
+
 def build_header_prompt(company_desc, user_yaml, date):
     return f"""You are a professional writing assistant.
 Given:
@@ -100,13 +120,15 @@ Company address
 company city, company province code company postal code
 """
 
-def generate_header():
+def generate_header(user_yaml=None, job_yaml=None):
     dotenv_path = Path("../.env")
     load_dotenv(dotenv_path=dotenv_path)
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-    job_desc = load_file("inputs/job_desc.yaml")
-    user = load_file("inputs/user.yaml")
+    # Use the passed job_yaml if provided, otherwise fall back to file
+    job_desc = job_yaml if job_yaml else load_file("inputs/job_desc.yaml")
+    # Use the passed user_yaml if provided, otherwise fall back to file
+    user = user_yaml if user_yaml else load_file("inputs/user.yaml")
     prompt = build_header_prompt(job_desc, user, date.today())
 
     model = "gemini-2.0-flash"
@@ -114,48 +136,52 @@ def generate_header():
     return response
 
 
-def generate_cl(par_count=4):
+def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4):
+    print("SFDsfalsdkfjhasldjkfhasjkldfhiajsdfh")
+    return
     dotenv_path = Path("code/cover_letter/.env")
     load_dotenv(dotenv_path=dotenv_path)
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
     
     model = "gemini-2.5-flash-preview-05-20"
-    # style_prompt = generate_style_prompt()
-    generate_job_yaml()
-
-    job_path = "inputs/job_desc.yaml"
-    user_path = "inputs/user.yaml"
-
-    user_yaml = load_yaml(user_path)
-    job_yaml = load_yaml(job_path)
-
     paragraphs = []
 
     for i in range(par_count):
         template_path = f"inputs/templates/template_p{i+1}.txt"
         template = load_file(template_path)
-        print(template)
-        print("\n\n\n")
-
         previous = "\n\n".join(paragraphs)
-
         prompt = build_cover_letter_prompt(template, user_yaml, job_yaml, previous)
         response = generate_with_retry(model, prompt, max_retries=2)
         response = generate_fixed(response)
-        # Potential improvement, call generate fixed again before saving, providing previous paragraphs when building paragraphs
-        # Generate multiple cover letters and pick the best
-
         paragraphs.append(response)
+
     cover_letter = "\n\n".join(paragraphs)
     cover_letter = remove_bloat(cover_letter)
+    
+    # Personalize the cover letter with writing sample if provided
+    if writing_sample:
+        from user_tuning import humanify_prompt
+        personalization_prompt = humanify_prompt(writing_sample, cover_letter)
+        cover_letter = generate_with_retry(model, personalization_prompt, max_retries=2)
+    
+    header = generate_header(user_yaml, job_yaml)
+    
+    # Extract company name from job_yaml for greeting
+    try:
+        job_dict = yaml_to_dict(job_yaml)
+        company_name = job_dict.get('job_profile', {}).get('company', 'Hiring Team')
+        company_name = get_shortened_name(company_name)
+        print(company_name)
+        greeting = f"Dear {company_name} hiring team,"
+    except (yaml.YAMLError, AttributeError):
+        greeting = "Dear Hiring Team,"
 
-    header = generate_header()
-    # code = clean_code(response)
+    user_dict = yaml_to_dict(user_yaml)
+    name = user_dict.get('user_profile', {}).get('name', {})
+    closing = f"Best Regards,\n{name}"
     
     cover_letter = re.sub(r'—', ',', cover_letter)
-
-    cover_letter = header + "\n\n" + cover_letter
-
+    cover_letter = header + "\n\n\n" + greeting + "\n\n" + cover_letter + "\n\n" + closing
     return cover_letter
 
     # humanized = clean_text(response)
@@ -166,26 +192,21 @@ def generate_cl(par_count=4):
     # with open(output_path, "w", encoding="utf-8") as f:
     #     f.write(response)
 
-def get_best_cl(num=3):
-    cover_letter = generate_cl()
-
+def get_best_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, num=1):
+    cover_letter = generate_cl(user_yaml, job_yaml, writing_sample, par_count)
     if (num > 1):
         for i in range(num):
-            cover_letter2 = generate_cl()
+            cover_letter2 = generate_cl(user_yaml, job_yaml, writing_sample, par_count)
             eval1 = evaluate_cl(cover_letter)
             eval2 = evaluate_cl(cover_letter2)
             comparison = compare_cls(cover_letter, eval1, cover_letter2, eval2)
             if comparison == "1":
                 cover_letter = cover_letter2
-
-    os.makedirs("outputs", exist_ok=True)
-    output_path = os.path.join("outputs", f"cover_letter.txt")
-
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(cover_letter)
+    return cover_letter
 
 def main():
-    get_best_cl()
+    # main() is no longer compatible with the new get_best_cl signature
+    raise NotImplementedError("main() is not supported after refactor. Use the API instead.")
 
 if __name__ == "__main__":
     main()

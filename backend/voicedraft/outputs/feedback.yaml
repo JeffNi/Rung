@@ -1,0 +1,17 @@
+```yaml
+overall_score: 3
+overall_comment: This letter provides an excellent structural template for a Senior AI Researcher position, demonstrating a clear understanding of what information should be included and maintaining a professional tone. However, in its current state, it is critically flawed and unusable for submission due to the pervasive use of unresolved placeholders. These placeholders prevent the letter from conveying any specific achievements, genuine interest, or tailored relevance, which are essential for a persuasive and job-ready application.
+issues:
+  - paragraph: 0
+    problem: The introductory paragraph contains generic placeholders for the company name and the platform where the advertisement was seen. This indicates a lack of customization essential for a professional application.
+    suggestion: Replace `[Company Name]` with the exact name of the target company and `[Platform where you saw the advertisement]` with the specific source (e.g., "LinkedIn," "company's careers page," "referral from [Name]").
+  - paragraph: 1
+    problem: This paragraph, intended to showcase specific achievements, relies entirely on placeholders (e.g., `[Number] years`, `[Previous Company]`, `[Percentage]%`, `[Number] researchers`). This makes all claims generic, unsubstantiated, and completely unpersuasive.
+    suggestion: Replace all bracketed placeholders with specific, quantifiable details from your actual professional experience. Provide real company names, precise figures, accurate percentages, and concrete outcomes to demonstrate your impact and expertise.
+  - paragraph: 2
+    problem: The paragraph expressing interest in the company uses vague placeholders for specific company values, projects, or products. This demonstrates a lack of tailored research into the target company, making the expressed interest appear insincere and unspecific.
+    suggestion: Thoroughly research the target company. Identify specific projects, initiatives, values, or recent achievements that genuinely resonate with your professional goals and expertise. Replace `[mention a specific company value, project, or recent achievement that resonates with you]` and `[specific project/product]` with concrete examples that explain *why* you are inspired by their work and how your skills align.
+  - paragraph: 3
+    problem: The closing paragraph still contains a placeholder for the company name. While minor, it reflects a lack of final review and attention to detail.
+    suggestion: Ensure `[Company Name]` is correctly filled in the closing statement for complete professionalism.
+```

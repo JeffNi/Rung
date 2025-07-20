@@ -1,39 +1,44 @@
 job_profile:
-  title: "Full Stack Engineering"
-  company: Ideogram
-  location: Toronto, ON
-  address: "320 Bay St"
-  postal: M5H 4A6
+  title: "Enterprise AI/ ML Intern"
+  company: Revvity
+  location: Mississauga, ON
+  address: "2566 Meadowpine Boulevard"
+  postal: L5N 6P9
   provinceCode: ON
-  description: "Ideogram is on a mission to make professional-quality design accessible to everyone. We're building an AI-native application that helps creative individuals and teams produce high-quality content faster and at a lower cost. We are pushing the boundaries of what's possible with AI, with a focus on creativity and a high standard for trust and safety. Our headquarters is in downtown Toronto, and we have a growing presence in NYC. Read our Ideogram 3.0 and Canvas blog posts, and try our product at ideogram.ai to get a glimpse of what we're building."
+  description: "At Revvity, we're leaders in the life sciences industry, delivering cutting-edge lab instruments, reagents, and top-level scientific software. We're now embarking on an exciting journey to harness the power of AI across our entire organization. We envision a future where AI enhances creativity, boosts productivity, and unlocks new potential in every aspect of our business.\nOur dedicated team is pioneering the integration of AI-driven technologies to help our employees work smarter, faster, and more innovatively. We're committed to responsible AI development that improves business outcomes while upholding our core values. If you're seeking a meaningful, impactful, and stimulating internship in enterprise AI application, this is your opportunity to make a difference."
   requirements:
-    - "Experience with design and development of novel, scalable solutions for challenging problems"
-    - "Strong data structure and algorithm fundamentals"
-    - "Experience in writing scalable and reliable code (e.g., experience with gRPC, Protobufs, MapReduce, an obsession for simplicity)."
-    - "Familiarity with Google Cloud Platform (GCP), Amazon Web Services (AWS), or similar cloud platforms"
-    - "Strong analytical and problem-solving skills"
-    - "Self-starter - able to come up to speed on complex, difficult concepts with minimal assistance"
-    - "Experience communicating complex technical issues to technical and non technical team members"
-    - "Excitement about generative AI technology and its impact on the creative economy."
-    - "Bachelor's degree in Computer Science, Engineering or related field"
+    - "Strong interest in enterprise AI applications"
+    - "Familiarity with popular LLMs such as ChatGPT, Claude, or others"
+    - "Familiarity with python, Next.JS, Docker and full stack technologies"
+    - "Basic understanding of prompt engineering concepts"
+    - "Proficiency in at least one programming language (Python preferred)"
+    - "Knowledge of machine learning concepts and frameworks (e.g., TensorFlow, PyTorch)"
+    - "Ability to work in a fast-paced, rapidly changing environment"
+    - "Strong problem-solving skills and meticulous attention to detail"
+    - "Excellent communication skills, both written and verbal"
   responsibilities:
-    - "As a Full Stack Engineer, you will build a simple yet elegant product that helps millions of users experience the magic of image and video generation with AI."
-    - "You will help shape the future of creative applications in the age of AI."
-    - "You will be a key participant in defining Ideogram's roadmap and product strategy, which will transform and expand the creative economy."
+    - "Complete onboarding, gaining familiarity with our enterprise systems and ongoing AI initiatives"
+    - "Provide feedback on your onboarding experience, embodying our value of continuous improvement"
+    - "Build relationships across various departments to understand their unique challenges and AI opportunities"
+    - "Gain a basic understanding of our business operations and how AI can enhance productivity"
+    - "Develop prototypes and proof-of-concepts for AI-powered features that can boost employee productivity and creativity"
+    - "Assist in fine-tuning and optimizing LLMs for specific enterprise use cases (e.g., report writing, data analysis, creative ideation)"
+    - "Contribute to the development of prompt engineering strategies for various business applications"
+    - "Participate in creating AI-driven tools that can be integrated into our existing workflow systems"
+    - "Collaborate on AI model integration projects, ensuring seamless user experiences across different platforms"
+    - "Assist in evaluating and benchmarking AI model performance against business KPIs and user satisfaction metrics"
+    - "Present your work and findings to stakeholders, translating complex AI concepts for both technical and non-technical audiences"
   values:
-    - "A small, dedicated team with a collaborative culture can move faster and build better and more coherent products than large hierarchical organizations."
-    - "Mentorship and support to help our employees grow with the company and achieve their ambitious career goals."
-    - "Welcoming everyone, regardless of gender identity, orientation, or expression."
-    - "Remove exclusivity and barriers and encourage new thinking and perceptions in a space of belonging."
+    - "Embrace the unknown"
+    - "Partner with purpose"
+    - "Passion for people"
+    - "Collaborate for success"
   keywords:
-    - "Full Stack"
-    - "Engineering"
-    - "AI"
-    - "Generative AI"
-    - "GCP"
-    - "AWS"
-    - "Python"
-    - "JavaScript"
-    - "React"
+    - AI
+    - ML
+    - "Large Language Models"
+    - LLM
+    - Python
+    - "Prompt Engineering"
   hiring_manager:
   hiring_manager_title:
