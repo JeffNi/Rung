@@ -270,24 +270,24 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
               <h2>Generated Cover Letter</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
             </div>
-            <div className="modal-body cover-letter-result">
-              <textarea
-                className="cover-letter-edit-textarea"
-                value={coverLetter}
-                onChange={e => {
-                  setCoverLetter(e.target.value);
-                  e.target.style.height = 'auto';
-                  e.target.style.height = e.target.scrollHeight + 'px';
-                }}
-                rows={1}
-                style={{ width: '100%', fontFamily: 'inherit', fontSize: '1rem', lineHeight: 1.6, color: '#374151', background: 'transparent', border: 'none', outline: 'none', marginBottom: '1rem', overflow: 'hidden', resize: 'none' }}
-                ref={el => {
-                  if (el) {
-                    el.style.height = 'auto';
-                    el.style.height = el.scrollHeight + 'px';
-                  }
-                }}
-              />
+            <div
+              className="modal-body cover-letter-result"
+              style={{
+                maxHeight: '60vh',
+                overflowY: 'auto',
+                paddingBottom: '2rem',
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'inherit',
+                fontSize: '1rem',
+                lineHeight: 1.6,
+                color: '#374151',
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                marginBottom: '1rem',
+              }}
+            >
+              {coverLetter}
             </div>
             <div className="modal-footer">
               <button className="btn-secondary" onClick={handleCopyCoverLetter} style={{ marginRight: '0.5rem' }}>

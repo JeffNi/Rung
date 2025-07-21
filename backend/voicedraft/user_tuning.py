@@ -1,7 +1,5 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
-import google.generativeai as genai
 from utils import generate_with_retry, load_file
     
 
@@ -99,10 +97,6 @@ Return only the finished cover letter
 
 
 def generate_style_prompt():
-    dotenv_path = Path("../.env")
-    load_dotenv(dotenv_path=dotenv_path)
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
     sample = load_file()
     prompt = make_style_extraction_prompt(sample)
 
@@ -111,10 +105,6 @@ def generate_style_prompt():
     return new_prompt
 
 def personalize(style):
-    dotenv_path = Path("../.env")
-    load_dotenv(dotenv_path=dotenv_path)
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
     sample = load_file()
     cl = load_file("outputs/cover_letter.txt")
     sample = load_file("inputs/writing_sample.txt")
@@ -126,7 +116,8 @@ def personalize(style):
 
 
 def main():
-    print(personalize())
+    style = generate_style_prompt()
+    print(personalize(style))
 
 if __name__ == "__main__":
     main()

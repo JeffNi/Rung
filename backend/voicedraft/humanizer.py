@@ -39,10 +39,11 @@ def get_synonym(word):
     synonyms = wordnet.synsets(word)
     lemmas = set()
     for syn in synonyms:
-        for lemma in syn.lemmas():
-            lem = lemma.name().replace('_', ' ')
-            if lem.lower() != word.lower():
-                lemmas.add(lem)
+        if syn is not None:
+            for lemma in syn.lemmas():
+                lem = lemma.name().replace('_', ' ')
+                if lem.lower() != word.lower():
+                    lemmas.add(lem)
     if lemmas:
         return random.choice(list(lemmas))
     else:

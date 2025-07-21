@@ -3,17 +3,23 @@ import yaml
 import os
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted
+from dotenv import load_dotenv
 
 # This file contains shared functions
 
-def generate_with_retry(model, prompt, max_retries=20):
+def generate_with_retry(model, prompt, max_retries=20, api_key=None):
+    if api_key is None:
+        load_dotenv(dotenv_path="../.env")
+        api_key = os.getenv("GEMINI_API_KEY")
+    genai.configure(api_key=api_key)
+
     retries = 0
     wait_time = 10
 
     while retries < max_retries:
         try:
-            model = genai.GenerativeModel(model)
-            response = model.generate_content(prompt)
+            gen_model = genai.GenerativeModel(model)
+            response = gen_model.generate_content(prompt)
             return response.text.strip()
         except ResourceExhausted as e:
             print(f"Rate limit hit, waiting {wait_time} seconds before retrying...")
