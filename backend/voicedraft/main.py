@@ -20,7 +20,7 @@ app = FastAPI(title="Cover Letter Generator API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://skyward-ai.vercel.app/",
+        "https://skyward-ai.vercel.app",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:5173",
