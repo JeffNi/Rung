@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.9.13
 
 RUN apt-get update && apt-get install -y curl build-essential
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y

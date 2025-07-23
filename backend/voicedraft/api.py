@@ -92,7 +92,7 @@ def create_temp_user_yaml(user_profile: dict) -> str:
         name = proj.get("name", "")
         description = proj.get("description", [])
         projects[name] = description
-        
+
     user_data = {
         "user_profile": {
             "name": user_profile.get("name", ""),
@@ -146,10 +146,10 @@ async def generate_cover_letter(request: Request):
         user_yaml = create_temp_user_yaml(user_profile)
         job_yaml = generate_job_yaml(job_description)
         
-        final_cover_letter = get_best_cl(user_yaml, job_yaml, writing_sample, paragraph_count, api_key=api_key)
+        cl = get_best_cl(user_yaml, job_yaml, writing_sample, paragraph_count, api_key=api_key)
 
         return CoverLetterResponse(
-            cover_letter=final_cover_letter,
+            cover_letter=cl,
             message="Cover letter generated successfully!"
         )
     except Exception as e:
