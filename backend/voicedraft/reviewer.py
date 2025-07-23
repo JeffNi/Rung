@@ -1,7 +1,5 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
-import google.generativeai as genai
 import re
 from utils import generate_with_retry, load_file
 
@@ -46,31 +44,23 @@ Make the revision sound like a thoughtful, smart person wrote it — not a chatb
 
 NO_AI_DETECTED = "NO_AI_DETECTED"
 def generate_review(model, cover_letter):
-    dotenv_path = Path("../.env")
-    load_dotenv(dotenv_path=dotenv_path)
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
     prompt = detect_AI_prompt(cover_letter, NO_AI_DETECTED)
 
     response = generate_with_retry(model, prompt, max_retries=1)
     return response
 
 def generate_fix(model, problems, cover_letter):
-    dotenv_path = Path("../.env")
-    load_dotenv(dotenv_path=dotenv_path)
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
     prompt = make_fixer_prompt(cover_letter, problems)
 
     response = generate_with_retry(model, prompt, max_retries=1)
     response = re.sub(r'—', ',', response)
     return response
 
-def run_fix_iterations(max_iter):
+def run_fix_iterations(max_iter, cover_letter):
     models = []
     suggestions = ""
     counter = 0
 
     for model in models:
         while not suggestions == NO_AI_DETECTED or counter % (max_iter-1) == 0:
-            suggestions = generate_review(model, )
+            suggestions = generate_review(model, cover_letter)
