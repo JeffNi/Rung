@@ -18,7 +18,7 @@ def generate_with_retry(model, prompt, max_retries=20, api_key=None):
 
     while retries < max_retries:
         try:
-            gen_model = genai.GenerativeModel(model)
+            gen_model = genai.GenerativeModel(model, api_key=api_key)
             response = gen_model.generate_content(prompt)
             return response.text.strip()
         except ResourceExhausted as e:
