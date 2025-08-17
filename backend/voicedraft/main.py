@@ -147,7 +147,7 @@ async def generate_cover_letter(request: Request):
         print("3")
         api_key = data.get('api_key', '')
         print("4")
-
+        print(api_key)
         user_yaml = create_temp_user_yaml(user_profile)
         print("5")
         job_yaml = generate_job_yaml(job_description, api_key)
