@@ -1,6 +1,8 @@
 import os
 import time
 from pathlib import Path
+from dotenv import load_dotenv
+import google.generativeai as genai
 from utils import generate_with_retry, load_yaml
 
 def build_yaml_prompt(template_path: str, job_desc: str) -> str:
@@ -33,28 +35,30 @@ def strip_code_fence(text: str) -> str:
         return "\n".join(lines[1:-1])
     return text
 
-def generate_job_yaml(job_description_text=None, api_key: str = ""):
-    base_dir = Path(__file__).parent
-    template_path = base_dir / "inputs" / "job_yaml_template.yaml"
+def generate_job_yaml(job_description_text=None):
+    dotenv_path = Path("../.env")
+    load_dotenv(dotenv_path=dotenv_path)
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+    template_path = "inputs/job_yaml_template.yaml"
     
     # Use provided job description text or read from file
     if job_description_text:
         job_desc = job_description_text
     else:
-        job_desc_path = base_dir / "inputs" / "job_desc.txt"
+        job_desc_path = "inputs/job_desc.txt"
         with open(job_desc_path, 'r', encoding='utf-8') as f:
             job_desc = f.read()
 
     prompt = build_yaml_prompt(template_path, job_desc)
 
     model = "gemini-2.0-flash"
-    yaml = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
+    yaml = generate_with_retry(model, prompt, max_retries=1)
     yaml = strip_code_fence(yaml)
     
     # For backward compatibility, still write to file if no text provided
     if not job_description_text:
-        out_path = base_dir / "inputs" / "job_desc.yaml"
-        with open(out_path, "w", encoding="utf-8") as f:
+        with open("inputs/job_desc.yaml", "w", encoding="utf-8") as f:
             f.write(yaml)
     
     return yaml
@@ -69,16 +73,16 @@ def is_valid_yaml(path):
         return False
 
 def ensure_generate_job_yaml(max_retries=3, delay=2):
-    job_path = Path(__file__).parent / "inputs" / "job_desc.yaml"
+    job_path = "inputs/job_desc.yaml"
     for attempt in range(max_retries):
         generate_job_yaml()
-        if is_valid_yaml(str(job_path)):
-            return load_yaml(str(job_path))
+        if is_valid_yaml(job_path):
+            return load_yaml(job_path)
         print(f"Attempt {attempt + 1} failed. Retrying...")
         time.sleep(delay)
     raise RuntimeError(f"Failed to generate a valid job YAML after {max_retries} attempts.")
 
-def get_shortened_name(name, api_key: str = ""):
+def get_shortened_name(name):
     prompt = f"""Given a company name, return a shortened version suitable for casual or brand reference.
 
 Remove generic suffixes like "LLC", "Inc", "Technologies", "Solutions", "Vision", etc.
@@ -91,7 +95,7 @@ Here is the company name to shorten:
 {name}"""
 
     model = "gemini-2.0-flash-lite"
-    shortened = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
+    shortened = generate_with_retry(model, prompt, max_retries=1)
     shortened = strip_code_fence(shortened)
     return shortened
 
