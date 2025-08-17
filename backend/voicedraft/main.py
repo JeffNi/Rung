@@ -136,17 +136,22 @@ def create_temp_job_yaml(job_description: dict) -> str:
 
 @app.post("/generate-cover-letter", response_model=CoverLetterResponse)
 async def generate_cover_letter(request: Request):
-    print("ADFASDFADFASDADFASDFAD")
     try:
+        print("1")
         data = await request.json()
+        print("2")
         user_profile = data.get('user_profile')
         job_description = data.get('job_description')
         writing_sample = data.get('writing_sample', '')
         paragraph_count = data.get('paragraph_count', 4)
+        print("3")
         api_key = data.get('api_key', '')
+        print("4")
 
         user_yaml = create_temp_user_yaml(user_profile)
+        print("5")
         job_yaml = generate_job_yaml(job_description)
+        print("6")
         
         cl = get_best_cl(user_yaml, job_yaml, writing_sample, paragraph_count, api_key=api_key)
 
