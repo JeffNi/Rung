@@ -1,44 +1,46 @@
 job_profile:
-  title: "Enterprise AI/ ML Intern"
-  company: Revvity
-  location: Mississauga, ON
-  address: "2566 Meadowpine Boulevard"
-  postal: L5N 6P9
-  provinceCode: ON
-  description: "At Revvity, we're leaders in the life sciences industry, delivering cutting-edge lab instruments, reagents, and top-level scientific software. We're now embarking on an exciting journey to harness the power of AI across our entire organization. We envision a future where AI enhances creativity, boosts productivity, and unlocks new potential in every aspect of our business.\nOur dedicated team is pioneering the integration of AI-driven technologies to help our employees work smarter, faster, and more innovatively. We're committed to responsible AI development that improves business outcomes while upholding our core values. If you're seeking a meaningful, impactful, and stimulating internship in enterprise AI application, this is your opportunity to make a difference."
+  title: "Intern/Co-op"
+  company: EY
+  location: "Calgary, Edmonton, Halifax, Montréal, Ottawa, Toronto, Vancouver"
+  address:
+  postal:
+  provinceCode:
+  description: "At EY Consulting, we are building a better working world by transforming businesses through the power of people, technology, and innovation. The advent of emerging tech is recasting all industries and requires our clients to embrace turning new technology capabilities into new competitive advantages."
   requirements:
-    - "Strong interest in enterprise AI applications"
-    - "Familiarity with popular LLMs such as ChatGPT, Claude, or others"
-    - "Familiarity with python, Next.JS, Docker and full stack technologies"
-    - "Basic understanding of prompt engineering concepts"
-    - "Proficiency in at least one programming language (Python preferred)"
-    - "Knowledge of machine learning concepts and frameworks (e.g., TensorFlow, PyTorch)"
-    - "Ability to work in a fast-paced, rapidly changing environment"
-    - "Strong problem-solving skills and meticulous attention to detail"
-    - "Excellent communication skills, both written and verbal"
+    - "Pursuing an undergraduate or graduate degree in business, STEM, or another related major"
+    - "Demonstrated project management, teaming, organizational, analytical, and problem-solving skills and the willingness and ability to learn and work independently with minimal supervision"
+    - "Effective organization and time management skills with the ability to work under pressure and adhere to project deadlines"
+    - "Strong interpersonal, written, and verbal communication skills"
+    - "Committed to integrity within a professional environment"
+    - "Quebec based roles involve interaction with clients operating nationally and globally where fluency in French and English is required. Bilingualism in both French and English is therefore a requirement of this role."
   responsibilities:
-    - "Complete onboarding, gaining familiarity with our enterprise systems and ongoing AI initiatives"
-    - "Provide feedback on your onboarding experience, embodying our value of continuous improvement"
-    - "Build relationships across various departments to understand their unique challenges and AI opportunities"
-    - "Gain a basic understanding of our business operations and how AI can enhance productivity"
-    - "Develop prototypes and proof-of-concepts for AI-powered features that can boost employee productivity and creativity"
-    - "Assist in fine-tuning and optimizing LLMs for specific enterprise use cases (e.g., report writing, data analysis, creative ideation)"
-    - "Contribute to the development of prompt engineering strategies for various business applications"
-    - "Participate in creating AI-driven tools that can be integrated into our existing workflow systems"
-    - "Collaborate on AI model integration projects, ensuring seamless user experiences across different platforms"
-    - "Assist in evaluating and benchmarking AI model performance against business KPIs and user satisfaction metrics"
-    - "Present your work and findings to stakeholders, translating complex AI concepts for both technical and non-technical audiences"
+    - "Maintain a strong client focus, be responsive to client requests, and to develop/maintain productive working relationships with client personnel."
+    - "Be informed of current business/economic developments relevant to the client's business and collaborate with team members to set goals and responsibilities for the project."
   values:
-    - "Embrace the unknown"
-    - "Partner with purpose"
-    - "Passion for people"
-    - "Collaborate for success"
+    - "You have an agile, growth-oriented mindset."
+    - "You are curious and purpose driven."
+    - "You are inclusive."
   keywords:
-    - AI
-    - ML
-    - LLM
-    - Python
-    - "Prompt Engineering"
-    - "Machine Learning"
+    - "Consulting"
+    - "Business Transformation"
+    - "Finance Transformation"
+    - "EY Studio+"
+    - "Digital Supply Chain & Operations"
+    - "Workforce Advisory"
+    - "HR Transformation & HR Technology"
+    - "Technology Strategy & Transformation"
+    - "Cybersecurity"
+    - "Artificial Intelligence & Data"
+    - "Sector Technologies & Platforms"
+    - "Digital Engineering"
+    - "SAP and Oracle Platforms"
+    - "Microsoft"
+    - "FoP Technologies & Platforms"
+    - "ServiceNow"
+    - "Healthcare"
+    - "Financial Services Risk Management"
+    - "Process & Controls"
+    - "Digital Risk"
+    - "Actuarial"
   hiring_manager:
   hiring_manager_title:

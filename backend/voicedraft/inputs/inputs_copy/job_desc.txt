@@ -1,0 +1,90 @@
+Job Type:
+Co-op Main
+
+Job Title:
+Enterprise AI/ ML Intern
+
+Number of Job Openings:
+1
+
+Level:
+
+Intermediate
+Senior
+Region:
+ON - Peel Region
+
+Job - Address Line One:
+2566 Meadowpine Boulevard
+
+Job - City:
+Mississauga
+
+Job - Province/State:
+Ontario
+
+Job - Postal/Zip Code:
+L5N 6P9
+
+Job - Country:
+Canada
+
+Employment Location Arrangement:
+Hybrid
+
+Additional Employment Arrangement Location Information:
+Students must be living in Ontario for the full duration of the work term. Will be required to travel to either KW or GTA region for meetups/ meetings several times throughout the term.
+
+Work Term Duration:
+4 month work term
+
+Job Summary:
+About Revvity:
+At Revvity, we're leaders in the life sciences industry, delivering cutting-edge lab instruments, reagents, and top-level scientific software. We're now embarking on an exciting journey to harness the power of AI across our entire organization. We envision a future where AI enhances creativity, boosts productivity, and unlocks new potential in every aspect of our business.
+Our dedicated team is pioneering the integration of AI-driven technologies to help our employees work smarter, faster, and more innovatively. We're committed to responsible AI development that improves business outcomes while upholding our core values. If you're seeking a meaningful, impactful, and stimulating internship in enterprise AI application, this is your opportunity to make a difference.
+
+About you:
+You're passionate about artificial intelligence, with a particular interest in how generative AI and large language models (LLMs) can transform business operations. You embody our core values:
+
+Embrace the unknown: You start each day with a "What if?" mindset, ready to explore how AI can revolutionize traditional business processes.
+Partner with purpose: You're excited to work alongside diverse teams, using AI to accelerate positive outcomes across all departments.
+Passion for people: You understand that AI's true potential lies in augmenting human capabilities, not replacing them.
+Collaborate for success: You thrive in team environments, putting collective goals before individual recognition, and valuing transparency and integrity in your work.
+You're a self-starter, comfortable with ambiguity, and excited by the prospect of applying cutting-edge AI technologies to real-world business challenges.
+Job Responsibilities:
+What you'll do:
+
+Within 30 days
+
+Complete onboarding, gaining familiarity with our enterprise systems and ongoing AI initiatives
+Provide feedback on your onboarding experience, embodying our value of continuous improvement
+Build relationships across various departments to understand their unique challenges and AI opportunities
+Gain a basic understanding of our business operations and how AI can enhance productivity
+Beyond 60 days
+Develop prototypes and proof-of-concepts for AI-powered features that can boost employee productivity and creativity
+Assist in fine-tuning and optimizing LLMs for specific enterprise use cases (e.g., report writing, data analysis, creative ideation)
+Contribute to the development of prompt engineering strategies for various business applications
+Participate in creating AI-driven tools that can be integrated into our existing workflow systems
+Collaborate on AI model integration projects, ensuring seamless user experiences across different platforms
+Assist in evaluating and benchmarking AI model performance against business KPIs and user satisfaction metrics
+Present your work and findings to stakeholders, translating complex AI concepts for both technical and non-technical audiences
+Required Skills:
+Requirements:
+
+Strong interest in enterprise AI applications
+Familiarity with popular LLMs such as ChatGPT, Claude, or others
+Familiarity with python, Next.JS, Docker and full stack technologies
+Basic understanding of prompt engineering concepts
+Proficiency in at least one programming language (Python preferred)
+Knowledge of machine learning concepts and frameworks (e.g., TensorFlow, PyTorch)
+Ability to work in a fast-paced, rapidly changing environment
+Strong problem-solving skills and meticulous attention to detail
+Excellent communication skills, both written and verbal
+Bonus: Understanding of business processes and enterprise software systems
+
+Our Values in Action:
+Embrace the unknown: Be prepared to tackle unprecedented challenges in applying AI to diverse business functions.
+Partner with purpose: Collaborate closely with employees across all levels to understand and meet their AI-driven needs.
+Passion for people: Focus on developing AI solutions that empower and uplift our workforce.
+Collaborate for success: Embrace teamwork, transparency, and integrity as we integrate AI into our corporate culture.
+This internship offers a unique opportunity to work at the forefront of enterprise AI application. Join us in shaping the future of AI-driven business innovation and employee empowerment!

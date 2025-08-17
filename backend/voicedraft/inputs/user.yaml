@@ -1,57 +1,81 @@
 user_profile: 
-    name: Jeff Ni
-    title: AI Engineer
+    name: Faiz Mustansar
+    title: Software Engineer
     contact:
-        email: jeffni96@gmail.com
-        phone: 647-679-3263
+        email: faizmustansar10@gmail.com
+        phone: "+1-647-675-4143" 
     skills: 
-        - machine learning
-        - prompt engineering
-        - Pandas
-        - Matplotlib
-        - Tensorflow
-        - numpy
-        - pytorch
+        - Java
+        - TypeScript
+        - JavaScript
+        - Python
+        - C
+        - SQL
+        - React
+        - Next.js
+        - Node.js
+        - Express.js
+        - Tailwind CSS
+        - Flask
+        - FastAPI
+        - Spring Boot
+        - GraphQL
+        - HTML/CSS
+        - Material UI,
+        - Docker 
+        - Go
+        - Redux
+        - Kubernetes
+        - Django
+        - Vite
     courses:
-        - Machine learning
-        - Artificial intelligence
-        - Relational databases
-        - Algorithms
-        - Operating systems
-        - Concurrent programming
-        - Statistics
-        - Linear algebra
-        - Calculus
-        - Data structures
+        - Object-Oriented Programming
+        - Data Structures
+        - Systems Analysis and Design
+        - Software Engineering
+        - Software Reliability & Testing
+        - User Interface
+        - Application Development
+        - Human-Computer Interaction
     experience:
-        AI Programmer at Environment and Climate Change Canada:
-            - Constructed RNN (GRU) timeseries ML model to achieve 88% f1 score for snow prediction from weather features
-            - Developed random forest and RNN models to fill missing satellite data for snow on/off and nutrient modeling
-        Software Engineer at Orderholic Inc.:
-            - Converted over 550,000 rows of historical order data into JSON and text format for training
-            - Fine-tuned Mistral 7B model using Unsloth for automated order to JSON conversion with 99% accuracy
-        Full Stack Developer at Citizencare Health:
-            - Collaborated with cross-functional teams to build a scalable chatbot integrated with a 12GB Postgres database, leveraging GPT-4 for advanced responses
-            - Efficient design only sends relevant information to chatbot, consequently reducing token costs down to <3000 per prompt on average while also eliminating security and hallucination concerns
-        AI and NLP Developer at Smart Waterloo Region:
-            - Enhanced chatbot accuracy by 20% using OpenAI embeddings, resulting in improved understanding of user queries
-            - Proposed and constructed a chatbot test suite, automating a >1 hour testing process
-        Game Developer at AI Land Games:
-            - Crafted 18 new levels in Unity C\# for voice activated english learning game, bringing total to 20
-            - Conceived 6 innovative level concepts to enhance player engagement and retention
+        Brown & Beatty AI:
+            - Redesigned complaint and incident management workflows in Next.js and Tailwind CSS, reducing staff task completion time by 30%.
+            - Optimized PostgreSQL queries and RESTful API endpoints via Prisma ORM, lowering API latency by 25%.
+            - Developed secure login and onboarding flow with Better-Auth, incorporating OAuth 2.0–level security.
+            - Configured AWS S3 object storage for fault-tolerant document handling and faster retrieval.
+        Octree:
+            - Launched multi-file project management interface with in-browser previews and concurrent file handling, increasing active session time and feature adoption.
+            - Improved time-to-interactive by 35% via bundling, lazy loading, and Supabase query optimization.
+            - Built encrypted object storage pipeline with Supabase Storage and Docker for secure, scalable data management.
+        University of Guelph:
+            - Implemented greedy algorithm–based mentor matching system, eliminating hours of manual coordination.
+            - Built booking platform for Dress to Impress initiative with automated notifications, cutting workload by 90%.
+            - Created secure award application management system with role-based access control, reducing processing time by 85%.
     projects:
-        Conquest of Geometrea:
-            - Implemented an RTS game with 5,000+ lines of code, supporting base construction and troop management against AI opponents
-            - Engineered a modular, object-oriented architecture, facilitating the creation of 14 distinct building types and 10 troop types, enhancing gameplay diversity and strategic options for players
-            - Optimized performance with efficient designs such as object pools and spatial grids to maintain 60fps during battles involving 100+ units
+        uoguelph.courses:
+            - Built a course planning platform for University of Guelph students, reaching 6,000+ active visitors and 26,000+ page views.
+            - Engineered real-time course data pipelines in Supabase, supporting 1,000+ concurrent users without performance loss.
+        SpendSmart:
+            - Built backend in Java Spring Boot and REST APIs for budget calculations, transaction tracking, and user authentication.
+            - Designed a responsive frontend to visualize spending patterns, increasing engagement by 50%.
+        FrontDesk AI:
+            - Developed AI-powered virtual front desk agent handling calls, bookings, and FAQs, reducing receptionist workload by 60%.
+            - Built telephony-to-AI pipeline with Twilio, FastAPI, and OpenAI for context-aware interactions.
     goals:
-        - Work on creative and impactful AI projects, especially those that push boundaries
+      - Secure a Winter 2026 software engineering internship or Summer 2026 new grad role at a company where I can contribute to impactful, scalable products.
+      - Strengthen expertise in backend development, distributed systems, and cloud architecture to deliver high-performance solutions.
+      - Apply problem-solving skills and technical knowledge to drive measurable improvements in product performance and user experience.
+
     values:
-        - autonomy, self sufficiency
-        - creativity, seeking bizarre solutions and thinking outside the box
-        - equality, fairness and human well being
-        - rebellion, rewriting unfair rules rather than conforming to them
+      - Continuous learning and self-improvement
+      - Delivering measurable, high-impact results
+      - Collaboration and knowledge sharing
+      - Ownership and accountability
+      - Adaptability in fast-paced environments
+      - Commitment to security and quality standards
+
     interests:
-        - Biology, genetic programming, animal facts
-        - Cognitive science, nature of consciousness and thought, understanding human behaviour
-        - Game design, coming up with fun ideas, creating my own worlds, characters and story
+        - Competitive Sports
+        - Hackathons
+        - Photography
+
