@@ -136,6 +136,7 @@ def create_temp_job_yaml(job_description: dict) -> str:
 
 @app.post("/generate-cover-letter", response_model=CoverLetterResponse)
 async def generate_cover_letter(request: Request):
+    print("ADFASDFADFASDADFASDFAD")
     try:
         data = await request.json()
         user_profile = data.get('user_profile')
