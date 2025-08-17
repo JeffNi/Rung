@@ -143,9 +143,11 @@ async def generate_cover_letter(request: Request):
         writing_sample = data.get('writing_sample', '')
         paragraph_count = data.get('paragraph_count', 4)
         api_key = data.get('api_key', '')
+        if not api_key:
+            api_key = os.getenv("GEMINI_API_KEY", "")
 
         user_yaml = create_temp_user_yaml(user_profile)
-        job_yaml = generate_job_yaml(job_description)
+        job_yaml = generate_job_yaml(job_description, api_key=api_key)
         
         cl = get_best_cl(user_yaml, job_yaml, writing_sample, paragraph_count, api_key=api_key)
 

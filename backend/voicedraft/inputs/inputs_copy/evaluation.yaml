@@ -1,0 +1,6 @@
+score: <score from 1 to 10>
+overall_comment: "<brief summary of quality>"
+issues:
+  - paragraph: <paragraph index starting at 0>
+    problem: "<what is wrong, vague, off-tone or weak>"
+    suggestion: "<specific advice to improve it>"

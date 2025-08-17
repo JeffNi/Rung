@@ -1,0 +1,25 @@
+user_profile: 
+    name:
+    title:
+    contact:
+        email:
+        phone:
+    skills: 
+        - skill1
+    courses:
+        - course1
+    experience:
+        job1:
+            - detail1
+        job2:
+            - detail1
+    projects:
+        project1:
+            - detail1
+    goals:
+        - goal1
+    values:
+        - val1
+        - val2
+    interests:
+        - interest1

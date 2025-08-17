@@ -1,90 +1,133 @@
-Job Type:
-Co-op Main
+2026 Consulting - Canada - Intern/Co-op|2026 Consultation - Canada - Stage/Coop
+1634652
+CAN-Calgary, CAN-Edmonton, CAN-Halifax, CAN-Montréal, CAN-Ottawa, CAN-Toronto, CAN-Vancouver
+apply
+_________
+At EY, we’re all in to shape your future with confidence.
 
-Job Title:
-Enterprise AI/ ML Intern
 
-Number of Job Openings:
-1
+We’ll help you succeed in a globally connected powerhouse of diverse teams and take your career wherever you want it to go.
 
-Level:
 
-Intermediate
-Senior
-Region:
-ON - Peel Region
+Join EY and help to build a better working world.
 
-Job - Address Line One:
-2566 Meadowpine Boulevard
 
-Job - City:
-Mississauga
+Are you ready to shape the future with confidence?
 
-Job - Province/State:
-Ontario
 
-Job - Postal/Zip Code:
-L5N 6P9
+Here at EY, you’ll have the chance to build a truly exceptional experience. We’ll empower you with the latest technology, surround you with high-performing teams, and provide the global scale and diverse and inclusive culture you need to discover your full potential. Through our coaching and training programs, you’ll develop the skills you need to stay relevant today and, in the future, – all while building a network of colleagues, mentors, and leaders who will be on the journey with you at EY and beyond.
 
-Job - Country:
-Canada
 
-Employment Location Arrangement:
-Hybrid
+The opportunity: your next adventure awaits
 
-Additional Employment Arrangement Location Information:
-Students must be living in Ontario for the full duration of the work term. Will be required to travel to either KW or GTA region for meetups/ meetings several times throughout the term.
 
-Work Term Duration:
-4 month work term
+At EY Consulting, we are building a better working world by transforming businesses through the power of people, technology, and innovation. The advent of emerging tech is recasting all industries and requires our clients to embrace turning new technology capabilities into new competitive advantages.
 
-Job Summary:
-About Revvity:
-At Revvity, we're leaders in the life sciences industry, delivering cutting-edge lab instruments, reagents, and top-level scientific software. We're now embarking on an exciting journey to harness the power of AI across our entire organization. We envision a future where AI enhances creativity, boosts productivity, and unlocks new potential in every aspect of our business.
-Our dedicated team is pioneering the integration of AI-driven technologies to help our employees work smarter, faster, and more innovatively. We're committed to responsible AI development that improves business outcomes while upholding our core values. If you're seeking a meaningful, impactful, and stimulating internship in enterprise AI application, this is your opportunity to make a difference.
 
-About you:
-You're passionate about artificial intelligence, with a particular interest in how generative AI and large language models (LLMs) can transform business operations. You embody our core values:
+We work collaboratively with some of the top executives in the largest companies in the world, helping them create and realize the best solutions for the future of their companies. Each project will be different, so you’ll need to be able to excel in ambiguous situations and confidently navigate ever-changing circumstances. We’ll look to you to take ownership of projects, be a self-starter, have the ability to translate complex information into simple terms, and deliver long-term solutions with confidence. On this team, you’ll have the unique opportunity to imagine the future as well as create it, where you can craft ideas and implement them for our clients.
 
-Embrace the unknown: You start each day with a "What if?" mindset, ready to explore how AI can revolutionize traditional business processes.
-Partner with purpose: You're excited to work alongside diverse teams, using AI to accelerate positive outcomes across all departments.
-Passion for people: You understand that AI's true potential lies in augmenting human capabilities, not replacing them.
-Collaborate for success: You thrive in team environments, putting collective goals before individual recognition, and valuing transparency and integrity in your work.
-You're a self-starter, comfortable with ambiguity, and excited by the prospect of applying cutting-edge AI technologies to real-world business challenges.
-Job Responsibilities:
-What you'll do:
 
-Within 30 days
+We are hiring into our Business, People, Technology and Risk Consulting groups:
 
-Complete onboarding, gaining familiarity with our enterprise systems and ongoing AI initiatives
-Provide feedback on your onboarding experience, embodying our value of continuous improvement
-Build relationships across various departments to understand their unique challenges and AI opportunities
-Gain a basic understanding of our business operations and how AI can enhance productivity
-Beyond 60 days
-Develop prototypes and proof-of-concepts for AI-powered features that can boost employee productivity and creativity
-Assist in fine-tuning and optimizing LLMs for specific enterprise use cases (e.g., report writing, data analysis, creative ideation)
-Contribute to the development of prompt engineering strategies for various business applications
-Participate in creating AI-driven tools that can be integrated into our existing workflow systems
-Collaborate on AI model integration projects, ensuring seamless user experiences across different platforms
-Assist in evaluating and benchmarking AI model performance against business KPIs and user satisfaction metrics
-Present your work and findings to stakeholders, translating complex AI concepts for both technical and non-technical audiences
-Required Skills:
-Requirements:
 
-Strong interest in enterprise AI applications
-Familiarity with popular LLMs such as ChatGPT, Claude, or others
-Familiarity with python, Next.JS, Docker and full stack technologies
-Basic understanding of prompt engineering concepts
-Proficiency in at least one programming language (Python preferred)
-Knowledge of machine learning concepts and frameworks (e.g., TensorFlow, PyTorch)
-Ability to work in a fast-paced, rapidly changing environment
-Strong problem-solving skills and meticulous attention to detail
-Excellent communication skills, both written and verbal
-Bonus: Understanding of business processes and enterprise software systems
+Business Consulting:
 
-Our Values in Action:
-Embrace the unknown: Be prepared to tackle unprecedented challenges in applying AI to diverse business functions.
-Partner with purpose: Collaborate closely with employees across all levels to understand and meet their AI-driven needs.
-Passion for people: Focus on developing AI solutions that empower and uplift our workforce.
-Collaborate for success: Embrace teamwork, transparency, and integrity as we integrate AI into our corporate culture.
-This internship offers a unique opportunity to work at the forefront of enterprise AI application. Join us in shaping the future of AI-driven business innovation and employee empowerment!
+Business Transformation (Toronto, Montreal, Ottawa, Edmonton, Vancouver)
+Finance Transformation (Toronto, Montreal, Ottawa, Calgary, Vancouver)
+EY Studio+ (Toronto, Montreal, Vancouver)
+Digital Supply Chain & Operations (Toronto, Montreal, Calgary, Ottawa)
+
+People Consulting:
+
+Workforce Advisory (Toronto, Montreal, Ottawa, Calgary, Vancouver)
+HR Transformation & HR Technology (Toronto, Montreal, Ottawa)
+
+Technology Consulting:
+
+Technology Strategy & Transformation (Toronto, Montreal, Vancouver)
+Cybersecurity (Toronto, Montreal, Calgary, Vancouver)
+Artificial Intelligence & Data (Toronto, Montreal, Calgary, Vancouver)
+Sector Technologies & Platforms – Banking Technology (Toronto, Montreal)
+Digital Engineering (Toronto)
+SAP and Oracle Platforms (Toronto, Montreal, Vancouver)
+Microsoft (Toronto)
+FoP Technologies & Platforms – Insurance (Toronto)
+ServiceNow (Toronto, Montreal, Calgary)
+Healthcare (Toronto, Edmonton, Vancouver)
+
+Risk Consulting:
+
+Financial Services Risk Management (Toronto, Montreal)
+Process & Controls (Toronto, Vancouver)
+Digital Risk (Toronto)
+Actuarial (Toronto, Quebec City)
+
+Note: Upon submission of your application, candidates will receive a link to complete a video interview and survey that provides details about each team and their work. These must be completed within 48 hours. Both components are required for your application to be considered. Applications that are incomplete will not be reviewed.
+
+
+As we are client facing, we expect our staff to demonstrate professionalism and competence in the client's environment. To maintain a strong client focus, be responsive to client requests, and to develop/maintain productive working relationships with client personnel. Staff should be informed of current business/economic developments relevant to the client's business and collaborate with team members to set goals and responsibilities for the project.
+
+
+If you’re ready to build on your potential, develop as a consultant, and join a growing team, this role is for you. Sound interesting? Well, this is just the beginning. Visit our website here to learn more.
+
+
+What we look for
+
+
+You have an agile, growth-oriented mindset. What you know matters. But the right mindset is just as important in determining success. We’re looking for people who are innovative, can work in an agile way and keep pace with a rapidly changing world.
+You are curious and purpose driven. We’re looking for people who see opportunities instead of challenges, who ask better questions to seek better answers that build a better working world.
+You are inclusive. We’re looking for people who seek out and embrace diverse perspectives, who value differences, and team inclusively to build safety and trust.
+Qualifications:
+Pursuing an undergraduate or graduate degree in business, STEM, or another related major
+Demonstrated project management, teaming, organizational, analytical, and problem-solving skills and the willingness and ability to learn and work independently with minimal supervision
+Effective organization and time management skills with the ability to work under pressure and adhere to project deadlines
+Strong interpersonal, written, and verbal communication skills
+Committed to integrity within a professional environment
+Quebec based roles involve interaction with clients operating nationally and globally where fluency in French and English is required. Bilingualism in both French and English is therefore a requirement of this role.
+
+What’s in it for you
+
+Accelerate your technical capabilities and transformative leadership skills with future-focused courses and development programs.
+Broaden your horizons by working on highly integrated teams across the globe and collaborate with people of diverse backgrounds — both professionally and culturally.
+Bring out the best in yourself with continuous investment in your personal well-being and career development.
+Develop your own personal purpose and help us create a positive ripple effect on our teams, our business, clients, and society – building a better working world, together.
+Students enrolled in a co-operative education program are entitled to a comprehensive Total Rewards package that incorporates medical & health benefits, including $5,000 for mental health and a pro-rated wellness allowance for your time at EY.
+
+What you can expect
+
+We are currently accepting intern and co-op applications for May 2026.
+To apply, please create a profile, and submit your most recent cover letter, resume, and unofficial transcripts as one single PDF document. Please indicate which team you are applying for on your cover letter.
+Within a week of submitting your PDF application, you will be provided with a link to complete the video and survey component of your application. You will have 48 hours to complete this video and survey. All candidates must complete this video and survey as part of the application process.
+Depending on the team you are interviewing for, successful candidates can expect to complete behavioural and case interviews with members of the Consulting team followed by a final round interview with senior leaders.
+
+British Columbia Region Pay Information
+
+
+The salary range for this job in British Columbia is $56,000 to $66,000. Individual salaries within this range are determined through a wide variety of factors including but not limited to education, experience, knowledge, skills and work location city.
+
+
+Diversity and Inclusion at EY
+
+
+Diversity and inclusiveness are at the heart of who we are and how we work. We’re committed to fostering an environment where differences are valued, policies and practices are equitable, and our people feel a sense of belonging. We embrace diversity and are committed to combating systemic racism, advancing gender equity and women in leadership, advocating for the 2SLGBTQIA+ community, promoting our neuroinclusion and accessibility initiatives, and are dedicated to amplifying the voices of Indigenous peoples (First Nations, Inuit, and Métis) nationally as we strive towards reconciliation. Our diverse experiences, abilities, backgrounds, and perspectives make our people unique and help guide us. Because when people feel free to be their authentic selves at work, they bring their best and are empowered to build a better working world.
+
+
+To have the best candidate experience, we encourage you to apply to no more than two positions within a six month period.
+
+
+Please note: Due to high volumes of applicants and varying local deadlines. Only successful applicants moving forward to an interview will be contacted.
+
+
+To help create the best experience during the recruitment process, please describe any disability-related adjustments or accommodations you may need.
+
+
+EY | Building a better working world
+
+
+EY is building a better working world by creating new value for clients, people, society and the planet, while building trust in capital markets.
+
+
+Enabled by data, AI and advanced technology, EY teams help clients shape the future with confidence and develop answers for the most pressing issues of today and tomorrow.
+
+
+EY teams work across a full spectrum of services in assurance, consulting, tax, strategy and transactions. Fueled by sector insights, a globally connected, multi-disciplinary network and diverse ecosystem partners, EY teams can provide services in more than 150 countries and territories.
