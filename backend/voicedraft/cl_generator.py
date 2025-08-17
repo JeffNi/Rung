@@ -103,9 +103,8 @@ company city, company province code company postal code
 """
 
 def generate_header(user_yaml=None, job_yaml=None, api_key=""):
-    base_dir = Path(__file__).parent
-    job_desc = job_yaml if job_yaml else load_file(str(base_dir / "inputs" / "job_desc.yaml"))
-    user = user_yaml if user_yaml else load_file(str(base_dir / "inputs" / "user.yaml"))
+    job_desc = job_yaml if job_yaml else load_file("inputs/job_desc.yaml")
+    user = user_yaml if user_yaml else load_file("inputs/user.yaml")
     prompt = build_header_prompt(job_desc, user, date.today())
     model = "gemini-2.0-flash"
     response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
@@ -114,10 +113,11 @@ def generate_header(user_yaml=None, job_yaml=None, api_key=""):
 def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key=""):
     model = "gemini-2.5-flash-preview-05-20"
     paragraphs = []
+    print(api_key)
     for i in range(par_count):
-        base_dir = Path(__file__).parent
-        template_path = base_dir / "inputs" / "templates" / f"template_p{i+1}.txt"
-        template = load_file(str(template_path))
+        print(i)
+        template_path = f"inputs/templates/template_p{i+1}.txt"
+        template = load_file(template_path)
         previous = "\n\n".join(paragraphs)
         prompt = build_cover_letter_prompt(template, user_yaml, job_yaml, previous)
         response = generate_with_retry(model, prompt, max_retries=2, api_key=api_key)
@@ -132,11 +132,11 @@ def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key="
         cover_letter = generate_with_retry(model, personalization_prompt, max_retries=2, api_key=api_key)
     
     header = generate_header(user_yaml, job_yaml, api_key=api_key)
-
+    print("FSDFSD")
     try:
         job_dict = yaml_to_dict(job_yaml)
         company_name = job_dict.get('job_profile', {}).get('company', 'Hiring Team')
-        company_name = get_shortened_name(company_name, api_key=api_key)
+        company_name = get_shortened_name(company_name)
         greeting = f"Dear {company_name} hiring team,"
     except (yaml.YAMLError, AttributeError):
         greeting = "Dear Hiring Team,"
@@ -161,8 +161,7 @@ def get_best_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, num=1, ap
             if comparison == "1":
                 cover_letter = cover_letter2
 
-    base_dir = Path(__file__).parent
-    output_path = base_dir / "outputs" / "cover_letter.txt"
+    output_path = "outputs/cover_letter.txt"
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(cover_letter)
     return cover_letter
@@ -171,8 +170,7 @@ def main():
     job_yaml = generate_job_yaml()
 
     api_key = os.getenv("GEMINI_API_KEY")
-    user_yaml = load_file(str(Path(__file__).parent / "inputs" / "user.yaml"))
-    job_yaml = load_file(str(Path(__file__).parent / "inputs" / "job_desc.yaml"))
+    user_yaml = load_file("inputs/user.yaml")
     job_yaml = load_file("inputs/job_desc.yaml")
     print(get_best_cl(user_yaml, job_yaml, api_key=api_key))
 
