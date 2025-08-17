@@ -37,31 +37,36 @@ def strip_code_fence(text: str) -> str:
 
 def generate_job_yaml(job_description_text=None, api_key=None):
     if api_key == None:
-        dotenv_path = Path("../.env")
+        # Load .env relative to the repository root (one level up from this module)
+        dotenv_path = Path(__file__).resolve().parent.parent / ".env"
         load_dotenv(dotenv_path=dotenv_path)
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
     else:
         genai.configure(api_key=api_key)
 
-    template_path = "inputs/job_yaml_template.yaml"
+    # Resolve paths relative to this file so it works regardless of CWD
+    base_dir = Path(__file__).parent
+    template_path = str(base_dir / "inputs" / "job_yaml_template.yaml")
     
     # Use provided job description text or read from file
     if job_description_text:
         job_desc = job_description_text
     else:
-        job_desc_path = "inputs/job_desc.txt"
-        with open(job_desc_path, 'r', encoding='utf-8') as f:
+        job_desc_path = base_dir / "inputs" / "job_desc.txt"
+        with open(str(job_desc_path), 'r', encoding='utf-8') as f:
             job_desc = f.read()
 
     prompt = build_yaml_prompt(template_path, job_desc)
 
     model = "gemini-2.0-flash"
-    yaml = generate_with_retry(model, prompt, max_retries=1)
+    # Forward api_key so deployment doesn't rely on a local .env
+    yaml = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
     yaml = strip_code_fence(yaml)
     
     # For backward compatibility, still write to file if no text provided
     if not job_description_text:
-        with open("inputs/job_desc.yaml", "w", encoding="utf-8") as f:
+        output_path = base_dir / "inputs" / "job_desc.yaml"
+        with open(str(output_path), "w", encoding="utf-8") as f:
             f.write(yaml)
     
     return yaml
@@ -70,13 +75,17 @@ def is_valid_yaml(path):
     if not os.path.exists(path):
         return False
     try:
-        data = load_yaml(path)
-        return data is not None and isinstance(data, dict)
+        # Validate by actually loading a dict
+        import yaml as _yaml
+        with open(path, 'r', encoding='utf-8') as f:
+            data = _yaml.safe_load(f)
+        return isinstance(data, dict)
     except Exception:
         return False
 
 def ensure_generate_job_yaml(max_retries=3, delay=2):
-    job_path = "inputs/job_desc.yaml"
+    base_dir = Path(__file__).parent
+    job_path = str(base_dir / "inputs" / "job_desc.yaml")
     for attempt in range(max_retries):
         generate_job_yaml()
         if is_valid_yaml(job_path):
