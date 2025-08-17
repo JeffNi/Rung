@@ -1,22 +1,29 @@
-Faiz Mustansar
-+1-647-675-4143
-faizmustansar10@gmail.com
+Jeff Ni
+6476793263
+jeffni888@hotmail.com
 
-2025-08-14
+2025-08-16
 
 EY
-Calgary, Edmonton, Halifax, Montréal, Ottawa, Toronto, Vancouver
+Calgary, AB
+Edmonton, AB
+Halifax, NS
+Montréal, QC
+Ottawa, ON
+Toronto, ON
+Vancouver, BC
+Quebec City, QC
 
 
 Dear EY hiring team,
 
-My name is Faiz Mustansar, and I'm excited to apply for the Intern/Co-op position at EY. I'm drawn to EY Consulting's focus on transforming businesses with technology and innovation. My experience developing impactful, scalable software aligns with your work in digital engineering and AI. I seek an opportunity to apply my skills to real-world challenges within a team that values an agile, growth-oriented mindset. This role is a great step to build my skills in backend development and cloud architecture.
+I'm interested in this Intern/Co-op role at EY Consulting because you turn new tech into real client solutions. Your motto "imagining the future as well as creating it" aligns with how I solve problems. From fine-tuning a Mistral 7B model to building an RNN for snow prediction, I thrive on tackling tricky situations and delivering impactful results through technology.
 
-At Brown & Beatty AI, I redesigned key workflows using Next.js, cutting staff task completion time by 30% and reducing API latency by 25% through optimized database queries. On the FrontDesk AI project, I developed an AI virtual agent that reduced receptionist workload by 60%. These projects taught me to build strategically, focusing on end-user needs and business impact.
+I'm also drawn to the variety of challenges in consulting. For example, developing a voice-activated English learning game required me to consider the player's experience, not just the code. Similarly, with my game, Conquest of Geometrea, I designed a complex system from the ground up, balancing performance with strategic depth. This taught me how to break down tough problems and ensure solid logic. I enjoy end-to-end problem solving, turning complex ideas into straightforward solutions for users.
 
-I'm eager to apply my problem-solving and technical skills to EY's challenges and expand my knowledge in backend development and cloud architecture. I'm ready to learn new technologies and frameworks to achieve impactful results.
+Your focus on an "agile, growth-oriented mindset" and being "curious and purpose driven" resonates with my approach. I'm always looking to expand my knowledge, whether diving into a new ML framework or designing a complex system architecture. My experience taking ownership of projects like Conquest of Geometrea aligns with the need for self-starters who can deliver clear solutions from complex information. I'm eager to bring this adaptability and drive to EY, confident I can quickly develop consulting skills and contribute effectively.
 
-I am excited to join EY and contribute to transforming businesses through technology. Thank you for your time and consideration. I look forward to discussing how my experience and drive fit this position.
+This Intern/Co-op role excites me because it offers the chance to combine my technical skills with a client focus in an environment that values continuous learning and impact. Thank you for your time and consideration. I'm eager to discuss how I can contribute to your team's success and would appreciate an interview.
 
 Best Regards,
-Faiz Mustansar
+Jeff Ni
