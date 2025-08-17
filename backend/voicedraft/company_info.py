@@ -35,10 +35,13 @@ def strip_code_fence(text: str) -> str:
         return "\n".join(lines[1:-1])
     return text
 
-def generate_job_yaml(job_description_text=None):
-    dotenv_path = Path("../.env")
-    load_dotenv(dotenv_path=dotenv_path)
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+def generate_job_yaml(job_description_text=None, api_key=None):
+    if api_key == None:
+        dotenv_path = Path("../.env")
+        load_dotenv(dotenv_path=dotenv_path)
+        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    else:
+        genai.configure(api_key=api_key)
 
     template_path = "inputs/job_yaml_template.yaml"
     

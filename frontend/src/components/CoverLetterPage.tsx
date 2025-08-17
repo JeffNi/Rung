@@ -144,7 +144,10 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
     setCoverLetter('');
     try {
       const { writingSample, ...userProfileRest } = userProfile;
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/generate-cover-letter`, {
+      const baseApi = (import.meta.env.VITE_API_URL || '').replace(/\/+$/,'');
+      const endpoint = '/generate-cover-letter';
+      const url = baseApi.endsWith(endpoint) ? baseApi : `${baseApi}${endpoint}`;
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

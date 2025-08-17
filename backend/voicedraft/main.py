@@ -150,7 +150,7 @@ async def generate_cover_letter(request: Request):
 
         user_yaml = create_temp_user_yaml(user_profile)
         print("5")
-        job_yaml = generate_job_yaml(job_description)
+        job_yaml = generate_job_yaml(job_description, api_key)
         print("6")
         
         cl = get_best_cl(user_yaml, job_yaml, writing_sample, paragraph_count, api_key=api_key)
