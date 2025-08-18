@@ -37,16 +37,7 @@ def load_yaml(filepath: str) -> str:
     return yaml.dump(data, sort_keys=False)
 
 def load_file(path="inputs/writing_sample.txt"):
-    # Try the provided path relative to current working directory first
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as file:
-            return file.read().strip()
-
-    # If not found, try resolving relative to this module's directory
-    module_dir = os.path.dirname(__file__)
-    alt_path = os.path.join(module_dir, path)
-    if os.path.exists(alt_path):
-        with open(alt_path, "r", encoding="utf-8") as file:
-            return file.read().strip()
-
-    raise FileNotFoundError(f"Sample file not found at: {path} (also tried: {alt_path})")
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Sample file not found at: {path}")
+    with open(path, "r", encoding="utf-8") as file:
+        return file.read().strip()

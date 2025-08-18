@@ -103,8 +103,9 @@ company city, company province code company postal code
 """
 
 def generate_header(user_yaml=None, job_yaml=None, api_key=""):
-    job_desc = job_yaml if job_yaml else load_file("inputs/job_desc.yaml")
-    user = user_yaml if user_yaml else load_file("inputs/user.yaml")
+    base_dir = Path(__file__).parent
+    job_desc = job_yaml if job_yaml else load_file(str(base_dir / "inputs" / "job_desc.yaml"))
+    user = user_yaml if user_yaml else load_file(str(base_dir / "inputs" / "user.yaml"))
     prompt = build_header_prompt(job_desc, user, date.today())
     model = "gemini-2.0-flash"
     response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
@@ -113,12 +114,14 @@ def generate_header(user_yaml=None, job_yaml=None, api_key=""):
 def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key=""):
     model = "gemini-2.5-flash-preview-05-20"
     paragraphs = []
-    print(api_key)
+    base_dir = Path(__file__).parent
     for i in range(par_count):
         print(i)
-        template_path = f"inputs/templates/template_p{i+1}.txt"
+        template_path = str(base_dir / "inputs" / "templates" / f"template_p{i+1}.txt")
+        print("s")
         template = load_file(template_path)
         previous = "\n\n".join(paragraphs)
+        print("w")
         prompt = build_cover_letter_prompt(template, user_yaml, job_yaml, previous)
         response = generate_with_retry(model, prompt, max_retries=2, api_key=api_key)
         response = generate_fixed(response)
@@ -161,8 +164,9 @@ def get_best_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, num=1, ap
             if comparison == "1":
                 cover_letter = cover_letter2
 
-    output_path = "outputs/cover_letter.txt"
-    with open(output_path, "w", encoding="utf-8") as f:
+    output_path = base_dir / "outputs" / "cover_letter.txt"
+    os.makedirs(output_path.parent, exist_ok=True)
+    with open(str(output_path), "w", encoding="utf-8") as f:
         f.write(cover_letter)
     return cover_letter
 
@@ -170,8 +174,9 @@ def main():
     job_yaml = generate_job_yaml()
 
     api_key = os.getenv("GEMINI_API_KEY")
-    user_yaml = load_file("inputs/user.yaml")
-    job_yaml = load_file("inputs/job_desc.yaml")
+    base_dir = Path(__file__).parent
+    user_yaml = load_file(str(base_dir / "inputs" / "user.yaml"))
+    job_yaml = load_file(str(base_dir / "inputs" / "job_desc.yaml"))
     print(get_best_cl(user_yaml, job_yaml, api_key=api_key))
 
 if __name__ == "__main__":
