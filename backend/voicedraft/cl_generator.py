@@ -166,6 +166,7 @@ def get_best_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, num=1, ap
             if comparison == "1":
                 cover_letter = cover_letter2
 
+    base_dir = Path(__file__).parent
     output_path = base_dir / "outputs" / "cover_letter.txt"
     os.makedirs(output_path.parent, exist_ok=True)
     with open(str(output_path), "w", encoding="utf-8") as f:
