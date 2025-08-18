@@ -1,7 +1,5 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
-import google.generativeai as genai
 from utils import generate_with_retry, load_file
 
 def generate_review_prompt(cl, eval_yaml):
@@ -60,32 +58,26 @@ Cover Letter 2:
 """
 
 
-def evaluate_cl(cl):
-    dotenv_path = Path("../.env")
-    load_dotenv(dotenv_path=dotenv_path)
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-    eval_yaml = load_file("inputs/evaluation.yaml")
+def evaluate_cl(cl, api_key=None):
+    base_dir = Path(__file__).parent
+    eval_yaml_path = str(base_dir / "inputs" / "evaluation.yaml")
+    eval_yaml = load_file(eval_yaml_path)
     prompt = generate_review_prompt(cl, eval_yaml)
 
     model = "gemini-2.5-flash-preview-05-20"
-    response = generate_with_retry(model, prompt, max_retries=1)
+    response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
 
-    os.makedirs("outputs", exist_ok=True)
-    output_path = os.path.join("outputs", f"feedback.yaml")
+    outputs_dir = base_dir / "outputs"
+    os.makedirs(outputs_dir, exist_ok=True)
+    output_path = outputs_dir / "feedback.yaml"
 
-    with open(output_path, "w", encoding="utf-8") as f:
+    with open(str(output_path), "w", encoding="utf-8") as f:
         f.write(response)
     return response
 
 
-def compare_cls(cl1, eval1, cl2, eval2):
-    dotenv_path = Path("../.env")
-    load_dotenv(dotenv_path=dotenv_path)
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
+def compare_cls(cl1, eval1, cl2, eval2, api_key=None):
     prompt = generate_comparison_prompt(cl1, eval1, cl2, eval2)
     model = "gemini-2.5-flash-preview-05-20"
-    response = generate_with_retry(model, prompt, max_retries=1)
-
+    response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
     return response

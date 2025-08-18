@@ -94,7 +94,7 @@ def ensure_generate_job_yaml(max_retries=3, delay=2):
         time.sleep(delay)
     raise RuntimeError(f"Failed to generate a valid job YAML after {max_retries} attempts.")
 
-def get_shortened_name(name):
+def get_shortened_name(name, api_key=None):
     prompt = f"""Given a company name, return a shortened version suitable for casual or brand reference.
 
 Remove generic suffixes like "LLC", "Inc", "Technologies", "Solutions", "Vision", etc.
@@ -107,7 +107,7 @@ Here is the company name to shorten:
 {name}"""
 
     model = "gemini-2.0-flash-lite"
-    shortened = generate_with_retry(model, prompt, max_retries=1)
+    shortened = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
     shortened = strip_code_fence(shortened)
     return shortened
 

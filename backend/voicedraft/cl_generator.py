@@ -141,7 +141,7 @@ def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key="
     try:
         job_dict = yaml_to_dict(job_yaml)
         company_name = job_dict.get('job_profile', {}).get('company', 'Hiring Team')
-        company_name = get_shortened_name(company_name)
+        company_name = get_shortened_name(company_name, api_key=api_key)
         greeting = f"Dear {company_name} hiring team,"
     except (yaml.YAMLError, AttributeError):
         greeting = "Dear Hiring Team,"
@@ -160,9 +160,9 @@ def get_best_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, num=1, ap
     if (num > 1):
         for i in range(num):
             cover_letter2 = generate_cl(user_yaml, job_yaml, writing_sample, par_count, api_key=api_key)
-            eval1 = evaluate_cl(cover_letter)
-            eval2 = evaluate_cl(cover_letter2)
-            comparison = compare_cls(cover_letter, eval1, cover_letter2, eval2)
+            eval1 = evaluate_cl(cover_letter, api_key=api_key)
+            eval2 = evaluate_cl(cover_letter2, api_key=api_key)
+            comparison = compare_cls(cover_letter, eval1, cover_letter2, eval2, api_key=api_key)
             if comparison == "1":
                 cover_letter = cover_letter2
 
