@@ -126,10 +126,10 @@ def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key="
         print("p")
         response = generate_with_retry(model, prompt, max_retries=2, api_key=api_key)
         print("q")
-        response = generate_fixed(response)
+        response = generate_fixed(response, api_key=api_key)
         paragraphs.append(response)
     cover_letter = "\n\n".join(paragraphs)
-    cover_letter = remove_bloat(cover_letter)
+    cover_letter = remove_bloat(cover_letter, api_key=api_key)
 
     if writing_sample:
         from user_tuning import humanify_prompt

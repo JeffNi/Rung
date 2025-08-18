@@ -1,7 +1,5 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
-import google.generativeai as genai
 from utils import generate_with_retry, load_file
 
 def build_fixer_prompt(noisy_text: str) -> str:
@@ -64,36 +62,20 @@ def build_improvement_prompt(paragraph, suggestion, template):
     return f""""""
 
 
-# def generate_fixed(noisy):
-#     dotenv_path = Path("../.env")
-#     load_dotenv(dotenv_path=dotenv_path)
-#     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-#     prompt = build_fixer_prompt(noisy)
-
-#     model = "gemini-2.5-flash-preview-05-20"
-#     response = generate_with_retry(model, prompt, max_retries=1)
-#     return response
-
-def generate_fixed(paragraph):
-    dotenv_path = Path("../.env")
-    load_dotenv(dotenv_path=dotenv_path)
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-    sample = load_file("inputs/writing_sample.txt")
+def generate_fixed(paragraph, api_key=None):
+    # Resolve sample path relative to this file so it works regardless of CWD
+    base_dir = Path(__file__).parent
+    sample_path = str(base_dir / "inputs" / "writing_sample.txt")
+    sample = load_file(sample_path)
     prompt = build_fixer_prompt2(paragraph, sample)
 
     model = "gemini-2.5-flash-preview-05-20"
-    response = generate_with_retry(model, prompt, max_retries=1)
+    response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
     return response
 
-def remove_bloat(paragraph):
-    dotenv_path = Path("../.env")
-    load_dotenv(dotenv_path=dotenv_path)
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
+def remove_bloat(paragraph, api_key=None):
     prompt = bloat_reduction_prompt(paragraph)
 
     model = "gemini-2.0-flash"
-    response = generate_with_retry(model, prompt, max_retries=1)
+    response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
     return response
