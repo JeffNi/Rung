@@ -100,7 +100,7 @@ def generate_style_prompt():
     sample = load_file()
     prompt = make_style_extraction_prompt(sample)
 
-    model = "gemini-2.0-flash"
+    model = "models/gemini-2.5-flash"
     new_prompt = generate_with_retry(model, prompt, max_retries=1)
     return new_prompt
 
@@ -110,7 +110,7 @@ def personalize(style):
     sample = load_file("inputs/writing_sample.txt")
     prompt = personalize_prompt(style, sample, cl)
 
-    model = "gemini-2.5-flash-preview-05-20"
+    model = "models/gemini-2.5-flash"
     new_prompt = generate_with_retry(model, prompt, max_retries=1)
     return new_prompt
 

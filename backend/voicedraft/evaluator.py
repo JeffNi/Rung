@@ -64,7 +64,7 @@ def evaluate_cl(cl, api_key=None):
     eval_yaml = load_file(eval_yaml_path)
     prompt = generate_review_prompt(cl, eval_yaml)
 
-    model = "gemini-2.5-flash-preview-05-20"
+    model = "models/gemini-2.5-flash"
     response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
 
     outputs_dir = base_dir / "outputs"
@@ -78,6 +78,6 @@ def evaluate_cl(cl, api_key=None):
 
 def compare_cls(cl1, eval1, cl2, eval2, api_key=None):
     prompt = generate_comparison_prompt(cl1, eval1, cl2, eval2)
-    model = "gemini-2.5-flash-preview-05-20"
+    model = "models/gemini-2.5-flash"
     response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
     return response

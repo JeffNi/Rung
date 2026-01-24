@@ -58,9 +58,9 @@ def generate_job_yaml(job_description_text=None, api_key=None):
 
     prompt = build_yaml_prompt(template_path, job_desc)
 
-    model = "gemini-2.0-flash"
+    model = "models/gemini-2.5-flash"
     # Forward api_key so deployment doesn't rely on a local .env
-    yaml = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
+    yaml = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Job YAML Generation")
     yaml = strip_code_fence(yaml)
     
     # For backward compatibility, still write to file if no text provided
@@ -106,8 +106,8 @@ Return only the core, identifiable name (e.g. "Virtek Vision" -> "Virtek", "Bree
 Here is the company name to shorten:
 {name}"""
 
-    model = "gemini-2.0-flash-lite"
-    shortened = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
+    model = "models/gemini-2.5-flash"
+    shortened = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Company Name Shortening")
     shortened = strip_code_fence(shortened)
     return shortened
 

@@ -107,44 +107,50 @@ def generate_header(user_yaml=None, job_yaml=None, api_key=""):
     job_desc = job_yaml if job_yaml else load_file(str(base_dir / "inputs" / "job_desc.yaml"))
     user = user_yaml if user_yaml else load_file(str(base_dir / "inputs" / "user.yaml"))
     prompt = build_header_prompt(job_desc, user, date.today())
-    model = "gemini-2.0-flash"
-    response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
+    model = "models/gemini-2.5-flash"
+    response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Header Generation")
     return response
 
 def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key=""):
-    model = "gemini-2.5-flash-preview-05-20"
+    model = "models/gemini-2.5-flash"
     paragraphs = []
     base_dir = Path(__file__).parent
     for i in range(par_count):
-        print(i)
+        print(f"\n  -> Generating paragraph {i+1}/{par_count}...")
         template_path = str(base_dir / "inputs" / "templates" / f"template_p{i+1}.txt")
-        print("s")
         template = load_file(template_path)
         previous = "\n\n".join(paragraphs)
-        print("w")
         prompt = build_cover_letter_prompt(template, user_yaml, job_yaml, previous)
-        print("p")
-        response = generate_with_retry(model, prompt, max_retries=2, api_key=api_key)
-        print("q")
+        response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name=f"Paragraph {i+1}")
+        print(f"  -> Fixing paragraph {i+1}...")
         response = generate_fixed(response, api_key=api_key)
         paragraphs.append(response)
+        print(f"  [OK] Paragraph {i+1} complete")
+    
     cover_letter = "\n\n".join(paragraphs)
+    print(f"\n  -> Removing bloat from cover letter...")
     cover_letter = remove_bloat(cover_letter, api_key=api_key)
 
     if writing_sample:
+        print(f"\n  -> Personalizing with writing sample...")
         from user_tuning import humanify_prompt
         personalization_prompt = humanify_prompt(writing_sample, cover_letter)
-        cover_letter = generate_with_retry(model, personalization_prompt, max_retries=2, api_key=api_key)
+        cover_letter = generate_with_retry(model, personalization_prompt, max_retries=5, api_key=api_key, step_name="Personalization")
+        print(f"  [OK] Personalization complete")
     
+    print(f"\n  -> Generating header...")
     header = generate_header(user_yaml, job_yaml, api_key=api_key)
-    print("FSDFSD")
+    print(f"  [OK] Header complete")
+    print(f"\n  -> Getting company name...")
     try:
         job_dict = yaml_to_dict(job_yaml)
         company_name = job_dict.get('job_profile', {}).get('company', 'Hiring Team')
         company_name = get_shortened_name(company_name, api_key=api_key)
         greeting = f"Dear {company_name} hiring team,"
+        print(f"  [OK] Company name: {company_name}")
     except (yaml.YAMLError, AttributeError):
         greeting = "Dear Hiring Team,"
+        print(f"  [OK] Using default greeting")
 
     user_dict = yaml_to_dict(user_yaml)
 

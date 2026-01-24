@@ -1,29 +1,21 @@
 Jeff Ni
 6476793263
-jeffni888@hotmail.com
+jeffni96@gmail.com
 
-2025-08-16
+2026-01-20
 
-EY
-Calgary, AB
-Edmonton, AB
-Halifax, NS
-Montréal, QC
-Ottawa, ON
-Toronto, ON
-Vancouver, BC
-Quebec City, QC
+TDAM
 
 
-Dear EY hiring team,
+Dear TDAM hiring team,
 
-I'm interested in this Intern/Co-op role at EY Consulting because you turn new tech into real client solutions. Your motto "imagining the future as well as creating it" aligns with how I solve problems. From fine-tuning a Mistral 7B model to building an RNN for snow prediction, I thrive on tackling tricky situations and delivering impactful results through technology.
+My name’s Jeff Ni, and I’m looking to join the Business Innovation team at TDAM as an AI/ML Engineer. What drew me into this role is its clear focus on building AI tools that really make a difference,generating revenue and cutting down on risk. This lines up perfectly with how I approach AI projects: I want to translate complex data into practical solutions, driving solid, data-driven decisions, especially in finance. It just feels like the right place to take my machine learning background and apply it to real business challenges.
 
-I'm also drawn to the variety of challenges in consulting. For example, developing a voice-activated English learning game required me to consider the player's experience, not just the code. Similarly, with my game, Conquest of Geometrea, I designed a complex system from the ground up, balancing performance with strategic depth. This taught me how to break down tough problems and ensure solid logic. I enjoy end-to-end problem solving, turning complex ideas into straightforward solutions for users.
+Take Bree Technologies, for example. I built a predictive model there that nailed forecasting card network failures, generating an estimated $1.2M in annual revenue and directly slashing risk. Achieving that meant engineering 120 features and then clustering them to boost explainability and speed up training. My curiosity doesn't stop with established methods; I’m always pushing into newer tech. I fine-tuned a Mistral 7B model for automated data conversion at Orderholic, for instance, hitting 99% accuracy. That hands-on drive and a constant curiosity for advanced AI is what I'm eager to bring to TDAM, especially since your team’s got a strong focus on GenAI and practical application.
 
-Your focus on an "agile, growth-oriented mindset" and being "curious and purpose driven" resonates with my approach. I'm always looking to expand my knowledge, whether diving into a new ML framework or designing a complex system architecture. My experience taking ownership of projects like Conquest of Geometrea aligns with the need for self-starters who can deliver clear solutions from complex information. I'm eager to bring this adaptability and drive to EY, confident I can quickly develop consulting skills and contribute effectively.
+Honestly, the team's commitment to continuous learning and new technologies is a big part of why I'm drawn here. My curiosity is a huge driver,it’s how I taught myself fine-tuning for Orderholic, or even how I built a complex RTS game from scratch. I’m ready to dive into cloud engineering with Azure and contribute to those deeper system discussions. When you combine my skills in data structures and algorithms with my knack for quickly picking up new tools, I think I’m a strong fit to build out AI solutions for TDAM, especially anything involving GenAI.
 
-This Intern/Co-op role excites me because it offers the chance to combine my technical skills with a client focus in an environment that values continuous learning and impact. Thank you for your time and consideration. I'm eager to discuss how I can contribute to your team's success and would appreciate an interview.
+I’m confident I can apply my AI/ML background to TDAM’s real business challenges. My drive for impactful projects really aligns with your focus on solutions that generate revenue, reduce risk, and even explore new ground like Azure cloud engineering. My curiosity and problem-solving approach means I'm going to quickly contribute to your team’s work. Thanks for your time and considering my application. I’d be eager to discuss what I can bring to the table in an interview.
 
 Best Regards,
 Jeff Ni

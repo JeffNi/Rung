@@ -69,13 +69,13 @@ def generate_fixed(paragraph, api_key=None):
     sample = load_file(sample_path)
     prompt = build_fixer_prompt2(paragraph, sample)
 
-    model = "gemini-2.5-flash-preview-05-20"
-    response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
+    model = "models/gemini-2.5-flash"
+    response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Fixing Paragraph")
     return response
 
 def remove_bloat(paragraph, api_key=None):
     prompt = bloat_reduction_prompt(paragraph)
 
-    model = "gemini-2.0-flash"
-    response = generate_with_retry(model, prompt, max_retries=1, api_key=api_key)
+    model = "models/gemini-2.5-flash"
+    response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Bloat Removal")
     return response

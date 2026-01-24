@@ -137,28 +137,43 @@ def create_temp_job_yaml(job_description: dict) -> str:
 @app.post("/generate-cover-letter", response_model=CoverLetterResponse)
 async def generate_cover_letter(request: Request):
     try:
-        print("1")
+        print("\n" + "="*60)
+        print("COVER LETTER GENERATION STARTED")
+        print("="*60)
+        
+        print("[Step 1/7] Parsing request data...")
         data = await request.json()
-        print("2")
         user_profile = data.get('user_profile')
         job_description = data.get('job_description')
         writing_sample = data.get('writing_sample', '')
         paragraph_count = data.get('paragraph_count', 4)
-        print("3")
         api_key = data.get('api_key', '')
-        print("4")
-        user_yaml = create_temp_user_yaml(user_profile)
-        print("5")
-        job_yaml = generate_job_yaml(job_description, api_key)
-        print("6")
         
+        if not api_key:
+            print("ERROR: No API key provided in request!")
+            raise HTTPException(status_code=400, detail="API key is required")
+        
+        print(f"[Step 2/7] Creating user profile YAML...")
+        user_yaml = create_temp_user_yaml(user_profile)
+        print("[OK] User profile created")
+        
+        print(f"[Step 3/7] Parsing job description with AI...")
+        job_yaml = generate_job_yaml(job_description, api_key)
+        print("[OK] Job description parsed")
+        
+        print(f"[Step 4/7] Generating cover letter ({paragraph_count} paragraphs + header)...")
         cl = get_best_cl(user_yaml, job_yaml, writing_sample, paragraph_count, api_key=api_key)
+        
+        print("\n" + "="*60)
+        print("COVER LETTER GENERATION COMPLETE!")
+        print("="*60 + "\n")
 
         return CoverLetterResponse(
             cover_letter=cl,
             message="Cover letter generated successfully!"
         )
     except Exception as e:
+        print(f"\n[ERROR] GENERATION FAILED: {str(e)}\n")
         raise HTTPException(status_code=500, detail=f"Error generating cover letter: {str(e)}")
 
 @app.get("/health")
