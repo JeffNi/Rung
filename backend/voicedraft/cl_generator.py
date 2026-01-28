@@ -18,7 +18,7 @@ def yaml_to_dict(yaml_string: str) -> dict:
 
 def build_cover_letter_prompt(template: str, user_yaml: str, job_yaml: str, previous:str = "") -> str:
     return f"""
-You are a thoughtful and articulate university student known for writing standout cover letters. You write in a way that feels honest, grounded, and personal — not like an AI or someone trying too hard to sound “professional.” Your goal is to write a paragraph for a standout cover letter given the previous paragraphs, a paragraph template, your user profile and the job description.
+You are a confident, articulate professional writing a cover letter. Your writing is direct, substantive, and natural—not robotic, not overly casual, not full of filler. You sound like a competent human who knows their worth.
 
 --- PREVIOUS PARAGRAPHS ---
 {previous}
@@ -32,35 +32,44 @@ You are a thoughtful and articulate university student known for writing standou
 --- JOB DESCRIPTION (YAML) ---
 {job_yaml}
 
-INSTRUCTIONS:
+CORE PRINCIPLES:
 
-Be natural and real. Write like someone who knows how to express sincere interest without sounding generic, robotic, or exaggerated. Aim for clarity, personality, and quiet confidence.
+1. **BE DIRECT AND CONFIDENT**
+   - State facts directly. "I built X" not "I think my background in building X shows"
+   - No hedging: never use "I think," "I believe," "kind of," "sort of," "really," "just"
+   - Show don't tell: demonstrate capability through examples, not self-assessment
 
-Pay attention to previous paragraphs to avoid unnecessarily repeating talking points.
+2. **VARY SENTENCE STRUCTURE**
+   - Not every sentence starts with "I"
+   - Mix short and long sentences
+   - Use different sentence types: statements, occasional questions if relevant
+   - Example: "At Citizencare, I built an internal chatbot that..." not "I built an internal chatbot at Citizencare that..."
 
-Avoid stuffing key words, only use talking points that sound natural and make you more appealing.
+3. **BE SPECIFIC, NOT VAGUE**
+   - "Built a SQL chatbot that reduced query time by 60%" not "brought models to life"
+   - Concrete results over abstract claims
+   - Technical details when relevant, but don't stuff keywords
 
-Avoid repeating talking points from previous paragraphs
+4. **CUT THE BLOAT**
+   - No phrases like: "my whole thing is," "is all about," "just feels like," "I'm keen to"
+   - Replace "looking to expand" with "want to learn" or just "will learn"
+   - Replace "dive into/dive deeper" with "work on/explore"
+   - Get to the point fast
 
-Avoid starting sentences with the same or, or overusing the same word. Use synonyms if possible
+5. **AVOID AI TELLS**
+   - No: "leveraging," "synergies," "esteemed company," "I am writing to express"
+   - No: "dynamic team," "fast-paced environment," "results-driven," "passionate about"
+   - No em-dashes (—), use commas or periods
+   - No robotic transitions: "Furthermore," "Moreover," "In addition"
 
-Avoid AI-sounding language. Never use phrases like “the bedrock of innovation,” “leveraging synergies,” “my passion for your esteemed company,” or “I am writing to express my interest.” Those are clichés. So are “dynamic team,” “fast-paced environment,” and “results-driven mindset.”
+6. **WHAT GOOD WRITING LOOKS LIKE**
+   - "At Orderholic, I fine-tuned a Mistral 7B model to automate order processing, which improved accuracy by 30% and freed up 15 hours of manual work per week."
+   - "Your focus on 100% AI projects is what drew me here. I've spent two years building ML solutions that actually ship—not prototypes that sit in notebooks."
+   - Natural, confident, specific. That's the tone.
 
-Avoid over-polish. You’re not writing for a corporate memo — you're a student trying to connect with another human. Slight imperfections are welcome. Let the letter breathe.
+Keep paragraphs between 90-130 words. Vary sentence length. Start sentences differently. Be substantive.
 
-Use concrete examples *only* when they clearly relate to what this job needs. Don’t stuff in every skill or project — pick the one or two that make the strongest case.
-
-Do not include references to well-known individuals unless directly relevant to the candidate’s experience or motivation.
-
-Avoid generic phrases like “I want to discuss this more” or “Thank you for your time” that do not add value.
-
-Be specific, not buzzwordy. Use concrete examples from the user’s experience that align with the job. It’s okay to be brief and to the point. Don’t stuff in every technical term — just what matters.
-
-Let personality show. A moment of humor, curiosity, or honesty makes a letter memorable. The tone should be smart, reflective, and genuine — like someone who really thought about this opportunity and what they bring to it.
-
-Keep paragraphs between 100 and 140 words.
-
-Write a short, varied paragraph. No headers, markdown, or commentary — just the final plain text letter.
+Return only the paragraph text—no headers, markdown, or meta-commentary.
 """
 
 def build_header_prompt(company_desc, user_yaml, date):
@@ -108,7 +117,7 @@ def generate_header(user_yaml=None, job_yaml=None, api_key=""):
     user = user_yaml if user_yaml else load_file(str(base_dir / "inputs" / "user.yaml"))
     prompt = build_header_prompt(job_desc, user, date.today())
     model = "models/gemini-2.5-flash"
-    response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Header Generation")
+    response = generate_with_retry(model, prompt, max_retries=15, api_key=api_key, step_name="Header Generation")
     return response
 
 def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key=""):
@@ -121,7 +130,7 @@ def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key="
         template = load_file(template_path)
         previous = "\n\n".join(paragraphs)
         prompt = build_cover_letter_prompt(template, user_yaml, job_yaml, previous)
-        response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name=f"Paragraph {i+1}")
+        response = generate_with_retry(model, prompt, max_retries=15, api_key=api_key, step_name=f"Paragraph {i+1}")
         print(f"  -> Fixing paragraph {i+1}...")
         response = generate_fixed(response, api_key=api_key)
         paragraphs.append(response)
@@ -135,7 +144,7 @@ def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key="
         print(f"\n  -> Personalizing with writing sample...")
         from user_tuning import humanify_prompt
         personalization_prompt = humanify_prompt(writing_sample, cover_letter)
-        cover_letter = generate_with_retry(model, personalization_prompt, max_retries=5, api_key=api_key, step_name="Personalization")
+        cover_letter = generate_with_retry(model, personalization_prompt, max_retries=15, api_key=api_key, step_name="Personalization")
         print(f"  [OK] Personalization complete")
     
     print(f"\n  -> Generating header...")

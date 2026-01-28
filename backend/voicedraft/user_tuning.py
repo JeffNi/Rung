@@ -31,53 +31,39 @@ WRITING SAMPLE:
 """  
 
 def humanify_prompt(writing_sample, cover_letter):
-    return f"""You are an expert writing assistant that rewrites AI-generated content to sound distinctly human, while preserving the original meaning.
+    return f"""Rewrite this AI-generated cover letter to sound like a confident, articulate human wrote it, matching the voice and rhythm of the writing sample provided.
 
-Below is a sample of a person's real writing style, followed by an AI-generated cover letter. Your task is to rewrite the cover letter in the style of the writing sample, while avoiding common patterns that reveal AI authorship.
-
----
-
-**WRITING SAMPLE**  
-(This is a real sample of the user’s writing. Match its tone, rhythm, sentence structure, and style.)
-
+**WRITING SAMPLE** (match the voice, rhythm, and natural phrasing—NOT the content or topic):
 {writing_sample}
 
----
-
-**AI-GENERATED COVER LETTER**  
-(This contains all the content that must be preserved — facts, achievements, tone of intent — but it sounds AI-generated.)
-
+**COVER LETTER TO REWRITE**:
 {cover_letter}
 
----
+**REQUIREMENTS**:
 
-**REWRITE INSTRUCTIONS**
+1. **Preserve all facts, achievements, and technical content**—just change how they're expressed
+2. **Match the writing sample's voice**: sentence rhythm, natural phrasing, level of formality
+3. **Remove AI tells**:
+   - No hedging: delete "I think," "I believe," "kind of," "really," "just"
+   - No bloat: remove "my whole thing is," "is all about," "I'm keen to," "dive into"
+   - No generic phrases: "excited to apply," "strong fit," "throughout my career"
+   - No em-dashes (—), use commas/periods. No curly quotes
+   - No corporate buzzwords: "leverage," "synergies," "dynamic," "passionate"
+   
+4. **Make it direct and confident**:
+   - "At X, I built Y that achieved Z" not "I think my experience building Y shows..."
+   - Start sentences differently—not always with "I"
+   - Mix short and long sentences
+   
+5. **Add natural voice markers** (ONLY if they match the writing sample):
+   - Strategic contractions (I'm, I've, that's)
+   - Occasional informal transitions that fit the sample's style
+   - Personal touches that match the sample's personality
 
-- **Do NOT change the meaning or content.**
-- **Do NOT remove accomplishments or technical terms.**
-- **Make it sound like the writing sample.**
-- **Use natural variation in sentence length and structure.**
-- Avoid generic phrases like "I am excited to apply", "I believe I am a strong fit", or "Throughout my career..."
-- Avoid overly formal or robotic tone — write like a thoughtful, confident human.
-- Use contractions, analogies, humor, or informal transitions if present in the writing sample.
-- Add subtle voice markers like “to be honest,” “what drew me in,” “I’ve always had a thing for...”, etc. if they match the sample.
-- Aim to make it pass AI detectors like GPTZero or Originality.ai.
+6. **Professional but human**: This is a job application, so keep it professional. But make it sound like a competent person wrote it, not a robot.
 
-Avoid common signs of AI-generated text:
-- No double dashes `--` or em-dashes `—`; use commas, colons, or semicolons instead
-- No curly quotes (“ ”); use straight quotes (if applicable)
-- Vary sentence lengths and structure — no robotic pacing
-- Remove cliches like “I am excited to apply” or “I believe I’m a strong fit”
-- Avoid overly formal tone — natural, confident, personal is better
-- Use contractions and voice cues if they fit the style (e.g. "I'm", "I've", "honestly", "what drew me in", etc.)
-- Don’t overuse transition phrases like “Furthermore”, “In addition”, etc.
-- Keep formatting natural: no bullet points, no excessive line breaks, no weird spacing
-
----
-
-Now return only the final rewritten version of the cover letter — no explanation or commentary.
-
-    """
+Return only the rewritten cover letter—no explanations, no commentary.
+"""
 
 def personalize_prompt(style, sample, cover_letter):
     return f"""I need your help refining my cover letter to personalize it with my writing style. I will give you a description of my writings style, a sample of my writing and the cover letter to refine.

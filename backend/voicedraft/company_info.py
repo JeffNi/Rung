@@ -60,7 +60,7 @@ def generate_job_yaml(job_description_text=None, api_key=None):
 
     model = "models/gemini-2.5-flash"
     # Forward api_key so deployment doesn't rely on a local .env
-    yaml = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Job YAML Generation")
+    yaml = generate_with_retry(model, prompt, max_retries=15, api_key=api_key, step_name="Job YAML Generation")
     yaml = strip_code_fence(yaml)
     
     # For backward compatibility, still write to file if no text provided
@@ -107,7 +107,7 @@ Here is the company name to shorten:
 {name}"""
 
     model = "models/gemini-2.5-flash"
-    shortened = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Company Name Shortening")
+    shortened = generate_with_retry(model, prompt, max_retries=15, api_key=api_key, step_name="Company Name Shortening")
     shortened = strip_code_fence(shortened)
     return shortened
 
