@@ -31,31 +31,46 @@ Here is the letter to fix:
 {noisy_text}"""
 
 def build_fixer_prompt2(paragraph, user_sample) -> str:
-    return f"""You are editing part of a cover letter.
+    return f"""You are editing a cover letter paragraph to make it stronger and more human.
 
-Your task is to simplify the writing by removing unnecessary or overly formal words, and replacing fancy words with more natural alternatives. You may only delete words, replace them, or add small helper words (like "a" or "the") to make grammar correct.
+Your task:
+1. Remove weak/hedging language: "I think," "I believe," "kind of," "really," "just," "actually"
+2. Remove bloat: "my whole thing is," "is all about," "I'm keen to," "dive into," "just feels like"
+3. Make it direct: "I built X" not "I've been working on building X"
+4. Match the natural rhythm and phrasing style of the writing sample (voice, not content)
+5. Keep it professional but human—confident without being arrogant
 
-Additionally, match the tone and personality of the writing sample below. You are not copying its structure or content—just capturing the writer’s voice, phrasing style, and general rhythm. Prioritize clarity and authenticity, but keep the professionalism expected in a job application.
+**IMPORTANT**: 
+- Don't make it overly formal or stiff
+- Don't add corporate jargon
+- Don't remove all personality—just the weak filler
+- Vary sentence starts: not every sentence should start with "I"
 
 Here is the paragraph to edit:
 {paragraph}
 
-Here is the personal writing sample (for tone reference only):
+Here is the personal writing sample (for voice/rhythm reference only):
 {user_sample}
 
-Return only the edited paragraph.
+Return only the edited paragraph—no explanation.
 """
 
 def bloat_reduction_prompt(paragraph):
     return f"""
-Edit this cover letter by removing redundant words, filler phrases, bloat, and repeated ideas or phrases. 
-Keep the meaning and tone the same. Only remove or replace words or repeated content, do not rewrite entirely.
-Keep the sentence structure natural and human.
+Edit this cover letter to be more direct and impactful by:
+
+1. Removing hedging: "I think," "I believe," "kind of," "sort of," "really," "just," "actually"
+2. Removing casual bloat: "my whole thing is," "is all about," "I'm keen to," "looking to," "dive into/deeper"
+3. Cutting redundancy: if you've said it once clearly, don't say it again
+4. Making statements direct: "I built X" not "my background in building X shows that I can build things"
+5. Removing repeated phrases or ideas across paragraphs
+
+Keep the meaning, facts, and examples. Just make every word count.
 
 Here is the cover letter:
 {paragraph}
 
-Return only the edited cover letter.
+Return only the edited cover letter—no explanation.
 """
 
 def build_improvement_prompt(paragraph, suggestion, template):
@@ -70,12 +85,12 @@ def generate_fixed(paragraph, api_key=None):
     prompt = build_fixer_prompt2(paragraph, sample)
 
     model = "models/gemini-2.5-flash"
-    response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Fixing Paragraph")
+    response = generate_with_retry(model, prompt, max_retries=10, api_key=api_key, step_name="Fixing Paragraph")
     return response
 
 def remove_bloat(paragraph, api_key=None):
     prompt = bloat_reduction_prompt(paragraph)
 
     model = "models/gemini-2.5-flash"
-    response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Bloat Removal")
+    response = generate_with_retry(model, prompt, max_retries=10, api_key=api_key, step_name="Bloat Removal")
     return response

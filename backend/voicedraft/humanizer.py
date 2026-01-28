@@ -9,118 +9,126 @@ from utils import load_file
 nltk.download('wordnet')
 nltk.download('omw-1.4')
 
-# Contractions dictionary (expand or customize)
-CONTRACTIONS = {
-    "do not": "don't",
-    "does not": "doesn't",
-    "is not": "isn't",
-    "are not": "aren't",
+# Natural contractions that should ALWAYS be used (not random)
+NATURAL_CONTRACTIONS = {
     "I am": "I'm",
     "I have": "I've",
+    "I would": "I'd",
+    "that is": "that's",
+    "it is": "it's",
     "cannot": "can't",
-    "will not": "won't",
-    "would not": "wouldn't",
-    "should not": "shouldn't",
-    "could not": "couldn't",
-    "did not": "didn't",
 }
 
-FILLER_PHRASES = [
-    "Honestly,",
-    "To be frank,",
-    "I've found that",
-    "In my experience,",
-    "Actually,",
-    "Simply put,",
+# Weak/hedging phrases to remove
+WEAK_PHRASES = [
+    r"\bI think,?\b",
+    r"\bI believe,?\b", 
+    r"\bkind of\b",
+    r"\bsort of\b",
+    r"\breally\b",
+    r"\bvery\b",
+    r"\bjust\b",
+    r"\bactually\b",
+    r"\bbasically\b",
+    r"\bhonestly,?\b",
+    r"\bto be frank,?\b",
+    r"\bsimply put,?\b",
 ]
 
-def get_synonym(word):
-    """Get a synonym for a word using WordNet"""
-    synonyms = wordnet.synsets(word)
-    lemmas = set()
-    for syn in synonyms:
-        if syn is not None:
-            for lemma in syn.lemmas():
-                lem = lemma.name().replace('_', ' ')
-                if lem.lower() != word.lower():
-                    lemmas.add(lem)
-    if lemmas:
-        return random.choice(list(lemmas))
-    else:
-        return word
+# Redundant phrases to clean up
+REDUNDANT_PATTERNS = [
+    (r"my whole thing is", "I focus on"),
+    (r"is all about", "focuses on"),
+    (r"that just clicks with me", "resonates with me"),
+    (r"just feels like", "seems like"),
+    (r"I'm keen to", "I want to"),
+    (r"looking to", "want to"),
+    (r"dive into", "work on"),
+    (r"dive deeper", "explore"),
+]
 
-def apply_contractions(text):
-    """Replace phrases with contractions randomly"""
-    for phrase, contraction in CONTRACTIONS.items():
-        # Replace with 50% probability
-        def repl(match):
-            return contraction if random.random() < 0.5 else match.group(0)
+def apply_natural_contractions(text):
+    """Apply contractions that sound natural (not random)"""
+    for phrase, contraction in NATURAL_CONTRACTIONS.items():
         pattern = re.compile(re.escape(phrase), flags=re.IGNORECASE)
-        text = pattern.sub(repl, text)
+        text = pattern.sub(contraction, text)
     return text
 
-def insert_fillers(sentences):
-    """Insert filler phrases at the start of some sentences"""
+def remove_weak_language(text):
+    """Remove hedging and filler words that weaken writing"""
+    for pattern in WEAK_PHRASES:
+        # Remove the phrase and clean up extra spaces/commas
+        text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+        # Clean up double commas or comma-space issues
+        text = re.sub(r',\s*,', ',', text)
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r',\s+\.', '.', text)
+    return text.strip()
+
+def replace_redundant_phrases(text):
+    """Replace overly casual or redundant phrases with cleaner alternatives"""
+    for pattern, replacement in REDUNDANT_PATTERNS:
+        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
+    return text
+
+def vary_sentence_starts(text):
+    """Identify sentences starting with 'I' and mark them for variety"""
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    
+    # Count consecutive 'I' starts
+    i_streak = 0
     new_sents = []
+    
     for sent in sentences:
-        if random.random() < 0.3:  # 30% chance to add filler
-            filler = random.choice(FILLER_PHRASES)
-            # Avoid double commas if sentence already starts with one
-            if sent.startswith(filler):
-                new_sents.append(sent)
-            else:
-                new_sents.append(filler + " " + sent[0].lower() + sent[1:])
+        if sent.startswith('I ') or sent.startswith("I'm") or sent.startswith("I've"):
+            i_streak += 1
+            # If we have 3+ consecutive I sentences, that's a flag but we can't auto-fix
+            # without understanding context, so we just track it
         else:
-            new_sents.append(sent)
-    return new_sents
+            i_streak = 0
+        new_sents.append(sent)
+    
+    return ' '.join(new_sents)
 
-def synonym_swap(text, swap_prob=0.1):
-    """Randomly swap some words with synonyms"""
-    words = text.split()
-    new_words = []
-    for w in words:
-        if random.random() < swap_prob and w.isalpha():
-            new_words.append(get_synonym(w))
-        else:
-            new_words.append(w)
-    return ' '.join(new_words)
-
-def split_merge_sentences(sentences):
-    """Randomly split or merge sentences"""
-    i = 0
-    new_sents = []
-    while i < len(sentences):
-        if i < len(sentences) -1 and random.random() < 0.2:
-            # Merge current and next sentence
-            merged = sentences[i].rstrip('.!?') + ', ' + sentences[i+1][0].lower() + sentences[i+1][1:]
-            new_sents.append(merged)
-            i += 2
-        elif len(sentences[i]) > 100 and random.random() < 0.3:
-            # Split long sentence roughly in the middle
-            mid = len(sentences[i]) // 2
-            # Find space near mid
-            split_pos = sentences[i].find(' ', mid)
-            if split_pos == -1:
-                split_pos = mid
-            new_sents.append(sentences[i][:split_pos] + '.')
-            new_sents.append(sentences[i][split_pos+1:])
-            i += 1
-        else:
-            new_sents.append(sentences[i])
-            i += 1
-    return new_sents
+def clean_formatting(text):
+    """Fix formatting issues that make text look AI-generated"""
+    # Replace em-dashes and double dashes with commas
+    text = re.sub(r'—', ',', text)
+    text = re.sub(r'--', ',', text)
+    
+    # Fix curly quotes to straight quotes
+    text = text.replace('"', '"').replace('"', '"')
+    text = text.replace(''', "'").replace(''', "'")
+    
+    # Clean up multiple spaces
+    text = re.sub(r'\s+', ' ', text)
+    
+    # Fix comma spacing
+    text = re.sub(r'\s*,\s*', ', ', text)
+    text = re.sub(r'\s*\.\s*', '. ', text)
+    
+    return text.strip()
 
 def clean_text(text):
-    # Basic sentence splitter (can be replaced with nltk.sent_tokenize)
-    sentences = re.split(r'(?<=[.!?]) +', text.strip())
-
-    sentences = insert_fillers(sentences)
-    sentences = split_merge_sentences(sentences)
-    text = ' '.join(sentences)
-
-    text = apply_contractions(text)
-    text = synonym_swap(text)
-
+    """
+    Clean AI-generated text to sound more human without adding garbage.
+    Focus: Remove weakness, not add random fillers.
+    """
+    # Apply natural contractions
+    text = apply_natural_contractions(text)
+    
+    # Remove weak hedging language
+    text = remove_weak_language(text)
+    
+    # Replace redundant casual phrases
+    text = replace_redundant_phrases(text)
+    
+    # Vary sentence structure (tracking only for now)
+    text = vary_sentence_starts(text)
+    
+    # Clean formatting
+    text = clean_formatting(text)
+    
     return text
 
 if __name__ == "__main__":

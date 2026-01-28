@@ -7,6 +7,13 @@ from dotenv import load_dotenv
 
 # This file contains shared functions
 
+# Gemini Model Options and Rate Limits (as of 2026):
+# - gemini-2.5-flash: Fast, cheap, ~15 RPM free tier, ~1000 RPM paid tier
+# - gemini-2.5-pro: More capable, slower, ~2 RPM free tier, ~1000 RPM paid tier
+# - gemini-1.5-flash: Legacy, ~15 RPM free tier
+# - gemini-1.5-pro: Legacy, ~2 RPM free tier
+# Currently using: gemini-2.5-flash for all calls
+
 def generate_with_retry(model, prompt, max_retries=20, api_key=None, step_name="API call"):
     print(f"[{step_name}] Starting with model: {model}")
     if api_key is None:
@@ -21,7 +28,8 @@ def generate_with_retry(model, prompt, max_retries=20, api_key=None, step_name="
     genai.configure(api_key=api_key)
 
     retries = 0
-    wait_time = 60  # Increased to match rate limit window
+    base_wait_time = 10  # Start with shorter wait for non-rate-limit errors
+    rate_limit_wait = 60  # Longer wait for rate limits
 
     while retries < max_retries:
         try:
@@ -30,23 +38,31 @@ def generate_with_retry(model, prompt, max_retries=20, api_key=None, step_name="
             response = gen_model.generate_content(prompt)
             print(f"[{step_name}] [OK] Success!")
             
-            # Add delay after successful call to prevent rate limit (20 RPM = ~3s per request)
-            print(f"[{step_name}] Waiting 4s before next API call to respect rate limits...")
-            time.sleep(4)
+            # Add delay after successful call to prevent rate limit (15 RPM = ~4s per request)
+            # Using 5s to be safe and leave buffer
+            print(f"[{step_name}] Waiting 5s before next API call to respect rate limits...")
+            time.sleep(5)
             
             return response.text.strip()
         except ResourceExhausted as e:
             retries += 1
             print(f"[{step_name}] Rate limit hit (attempt {retries}/{max_retries})")
             print(f"[{step_name}] Error details: {str(e)}")
+            print(f"[{step_name}] Model being used: {model}")
             if retries < max_retries:
+                print(f"[{step_name}] Waiting {rate_limit_wait}s before retrying...")
+                time.sleep(rate_limit_wait)
+                rate_limit_wait = min(rate_limit_wait * 2, 300)  # Cap at 5 minutes
+        except Exception as e:
+            retries += 1
+            print(f"[{step_name}] ERROR: {type(e).__name__}: {str(e)}")
+            print(f"[{step_name}] Model being used: {model}")
+            if retries < max_retries:
+                wait_time = base_wait_time * (2 ** (retries - 1))  # Exponential backoff: 10, 20, 40, 80...
+                wait_time = min(wait_time, 120)  # Cap at 2 minutes for non-rate-limit errors
                 print(f"[{step_name}] Waiting {wait_time}s before retrying...")
                 time.sleep(wait_time)
-                wait_time *= 2
-        except Exception as e:
-            print(f"[{step_name}] ERROR: {type(e).__name__}: {str(e)}")
-            retries += 1
-            if retries >= max_retries:
+            else:
                 break
     print(f"[{step_name}] FAILED: Max retries exceeded")
     raise Exception(f"Max retries exceeded for {step_name}")

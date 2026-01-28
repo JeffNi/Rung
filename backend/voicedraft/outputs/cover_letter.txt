@@ -2,20 +2,21 @@ Jeff Ni
 6476793263
 jeffni96@gmail.com
 
-2026-01-20
+2026-01-27
 
-TDAM
+Company
+Waterloo, ON
 
 
-Dear TDAM hiring team,
+Dear Please provide a company name to shorten. hiring team,
 
-My name’s Jeff Ni, and I’m looking to join the Business Innovation team at TDAM as an AI/ML Engineer. What drew me into this role is its clear focus on building AI tools that really make a difference,generating revenue and cutting down on risk. This lines up perfectly with how I approach AI projects: I want to translate complex data into practical solutions, driving solid, data-driven decisions, especially in finance. It just feels like the right place to take my machine learning background and apply it to real business challenges.
+What really caught my eye about your company's Full Stack Developer role was that 100% commitment to AI projects. My background in ML engineering and AI development, I think, is all about bringing models to life. Take Citizencare, for example: I built a full internal chatbot from scratch there, letting employees quickly query SQL databases. I see that as showing my focus on connecting AI innovation with practical applications. I'm keen to contribute my experience, develop my full-stack skills further, and push what's possible with AI.
 
-Take Bree Technologies, for example. I built a predictive model there that nailed forecasting card network failures, generating an estimated $1.2M in annual revenue and directly slashing risk. Achieving that meant engineering 120 features and then clustering them to boost explainability and speed up training. My curiosity doesn't stop with established methods; I’m always pushing into newer tech. I fine-tuned a Mistral 7B model for automated data conversion at Orderholic, for instance, hitting 99% accuracy. That hands-on drive and a constant curiosity for advanced AI is what I'm eager to bring to TDAM, especially since your team’s got a strong focus on GenAI and practical application.
+At Orderholic, I took large datasets and used them to train and fine-tune a Mistral 7B model, which then automated order processing with a high degree of accuracy. That meant building robust data pipelines and getting complex AI solutions to integrate into existing systems. Then at Smart Waterloo Region, I improved chatbot accuracy with OpenAI embeddings, and that's where I learned how to build AI features that genuinely serve users. I'm ready to dive into diverse AI projects, solve real problems, and, as a full-stack developer, make these solutions real.
 
-Honestly, the team's commitment to continuous learning and new technologies is a big part of why I'm drawn here. My curiosity is a huge driver,it’s how I taught myself fine-tuning for Orderholic, or even how I built a complex RTS game from scratch. I’m ready to dive into cloud engineering with Azure and contribute to those deeper system discussions. When you combine my skills in data structures and algorithms with my knack for quickly picking up new tools, I think I’m a strong fit to build out AI solutions for TDAM, especially anything involving GenAI.
+My whole thing is developing AI and bringing it to life practically, so your 100% AI focus just clicks with me. Sure, I've mostly built solutions with Python, but I'm really looking to expand my full-stack skills using your tools, like Java, .NET, and React. When you mentioned LangChain, that definitely got my attention. I'm keen to dive deeper into frameworks like that, because they're great for development speed and versatility. This just feels like the right place to grow my skills and really add to your innovative AI work.
 
-I’m confident I can apply my AI/ML background to TDAM’s real business challenges. My drive for impactful projects really aligns with your focus on solutions that generate revenue, reduce risk, and even explore new ground like Azure cloud engineering. My curiosity and problem-solving approach means I'm going to quickly contribute to your team’s work. Thanks for your time and considering my application. I’d be eager to discuss what I can bring to the table in an interview.
+With your 100% AI focus and the chance to really deepen my full-stack skills with Java, .NET, and React, this Full Stack Developer role looks like a clear next step. I'm ready to bring my practical AI development experience to your team and build solutions that are both innovative and actually work. Thanks for your time and looking over my application. I'm keen to learn more about the role, how I can make an impact, and I look forward to talking about it.
 
 Best Regards,
 Jeff Ni
