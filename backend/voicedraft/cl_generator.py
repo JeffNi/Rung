@@ -1,14 +1,15 @@
 import os
 import re
 from datetime import date
-from humanizer import clean_text
 from pathlib import Path
 import yaml
 from utils import generate_with_retry, load_file, load_yaml
 from company_info import generate_job_yaml, get_shortened_name
 from user_tuning import generate_style_prompt, personalize
-from fixer import generate_fixed, remove_bloat
+from fixer import generate_fixed, remove_bloat, reduce_repetition
 from evaluator import evaluate_cl, compare_cls
+from provider_config import get_model_for_provider, get_fallback_models
+from quality_check import validate_cover_letter, print_quality_report
 
 def yaml_to_dict(yaml_string: str) -> dict:
     try:
@@ -16,9 +17,41 @@ def yaml_to_dict(yaml_string: str) -> dict:
     except yaml.YAMLError as e:
         raise yaml.YAMLError(f"Failed to parse YAML string: {e}")
 
-def build_cover_letter_prompt(template: str, user_yaml: str, job_yaml: str, previous:str = "") -> str:
+def fix_hyphens(text, api_key=None, provider="gemini", fallback_models=None):
+    """Intelligently remove hyphens used as sentence breaks"""
+    # Check if there are any hyphens used as breaks (not compound words)
+    if not re.search(r'\s+[-–—]+\s+', text):
+        return text  # No hyphens to fix
+    
+    prompt = f"""Rewrite this text to remove ALL hyphens used as sentence breaks or connectors.
+
+**Rules:**
+- Replace hyphens with commas, periods, or semicolons depending on context
+- Keep compound words like "full-stack" or "AI-powered" unchanged
+- Maintain all content and meaning
+- Use proper grammar and punctuation
+
+**Examples:**
+BAD: "I built a chatbot - it improved accuracy by 20%"
+GOOD: "I built a chatbot that improved accuracy by 20%"
+OR: "I built a chatbot. It improved accuracy by 20%"
+
+BAD: "My skills - Python, React, and AWS - align with your needs"
+GOOD: "My skills (Python, React, and AWS) align with your needs"
+
+Text to fix:
+{text}
+
+Return only the fixed text with no explanation."""
+
+    model = get_model_for_provider(provider)
+    fallback_models = get_fallback_models(provider)
+    return generate_with_retry(model, prompt, max_retries=3, api_key=api_key, step_name="Hyphen Removal", provider=provider, fallback_models=fallback_models)
+
+def build_cover_letter_prompt(template: str, user_yaml: str, job_yaml: str, previous:str = "", additional_instructions:str = "") -> str:
+    additional_section = f"\n\n--- ADDITIONAL INSTRUCTIONS ---\n{additional_instructions}\n" if additional_instructions else ""
     return f"""
-You are a thoughtful and articulate university student known for writing standout cover letters. You write in a way that feels honest, grounded, and personal — not like an AI or someone trying too hard to sound “professional.” Your goal is to write a paragraph for a standout cover letter given the previous paragraphs, a paragraph template, your user profile and the job description.
+You are writing a professional cover letter for a job application. Write naturally and confidently without sounding generic or overly formal.
 
 --- PREVIOUS PARAGRAPHS ---
 {previous}
@@ -30,37 +63,93 @@ You are a thoughtful and articulate university student known for writing standou
 {user_yaml}
 
 --- JOB DESCRIPTION (YAML) ---
-{job_yaml}
+{job_yaml}{additional_section}
 
-INSTRUCTIONS:
+WRITING GUIDELINES:
 
-Be natural and real. Write like someone who knows how to express sincere interest without sounding generic, robotic, or exaggerated. Aim for clarity, personality, and quiet confidence.
+**STEP 1: Answer These Questions (DO NOT include these questions in your output - just use them to guide your thinking):**
 
-Pay attention to previous paragraphs to avoid unnecessarily repeating talking points.
+Before writing, identify:
+1. What SPECIFIC project/achievement from the user's profile is most relevant to THIS job requirement?
+2. What CONCRETE result/impact did it have? (Use actual numbers/metrics if available)
+3. WHICH EXACT requirement from the job description does this address?
+4. HOW did you accomplish this? (What specific tools/technologies/approach?)
+5. WHY does this matter for THIS role at THIS company?
 
-Avoid stuffing key words, only use talking points that sound natural and make you more appealing.
+**STEP 2: Write Using These Rules:**
 
-Avoid repeating talking points from previous paragraphs
+**Professional and Direct:**
+- Write with confidence and clarity
+- Be specific about your skills and achievements
+- Use concrete examples when they strengthen your case
+- Keep sentences varied in length and structure
 
-Avoid starting sentences with the same or, or overusing the same word. Use synonyms if possible
+**CRITICAL: Connect Skills to Job Requirements:**
+- For EACH skill or achievement you mention, explicitly tie it to a requirement in the job description
+- Don't just list skills - explain WHY they matter for THIS specific role
+- Reference specific technologies, responsibilities, or requirements from the job posting
+- Show you understand what the role needs and how your experience addresses it
+- Example: Instead of "I have experience with Python", write "At [Company], I used Python to [achievement], which directly addresses your need for [specific job requirement]"
 
-Avoid AI-sounding language. Never use phrases like “the bedrock of innovation,” “leveraging synergies,” “my passion for your esteemed company,” or “I am writing to express my interest.” Those are clichés. So are “dynamic team,” “fast-paced environment,” and “results-driven mindset.”
+**CRITICAL: Avoid These AI/Generic Patterns:**
 
-Avoid over-polish. You’re not writing for a corporate memo — you're a student trying to connect with another human. Slight imperfections are welcome. Let the letter breathe.
+**BANNED Sentence Patterns (DO NOT START MORE THAN 2 SENTENCES THIS WAY):**
+BANNED: "I'm [adjective]" (e.g., "I'm confident," "I'm excited," "I'm impressed")
+BANNED: "I am [adjective]"
+BANNED: "I have [experience]"
+BANNED: "I believe"
+BANNED: "I think"
+BANNED: "I feel"
 
-Use concrete examples *only* when they clearly relate to what this job needs. Don’t stuff in every skill or project — pick the one or two that make the strongest case.
+**Instead, use varied openings:**
+OK: "My experience with X has..."
+OK: "At [Company], I..."
+OK: "Working on X taught me..."
+OK: "This role combines..."
+OK: "[Company]'s approach to X..."
 
-Do not include references to well-known individuals unless directly relevant to the candidate’s experience or motivation.
+**BANNED Phrases (NEVER USE THESE):**
+- "to be honest," "honestly," "actually"
+- "what drew me in," "I've always had a thing for"
+- "I'm excited to apply," "I believe I'm a strong fit"
+- "make a difference," "make a real impact"  
+- "leveraging synergies," "bedrock of innovation"
+- "dynamic team," "fast-paced environment"
+- "my tenure at," "my aspiration is to"
+- "resonate with me," "aligns with me"
+- "thereby supporting," "something I anticipate"
+- "realizing its ambitions," "overarching aspirations"
+- Personal issues: "social anxiety," "struggles," "weaknesses"
 
-Avoid generic phrases like “I want to discuss this more” or “Thank you for your time” that do not add value.
+**BANNED Vague Words/Phrases (Be specific instead):**
+- "impressive outcomes" → Use actual numbers/metrics
+- "swift, dependable, optimized" → Say what you actually built
+- "yield valuable insights" → Explain the specific insight/impact
+- "crucial aspect," "showcasing my capability"
+- "align with business objectives," "equipped me to contribute"
+- "innovative approach," "commitment to fostering"
+- "craft AI solutions," "enabling me to"
 
-Be specific, not buzzwordy. Use concrete examples from the user’s experience that align with the job. It’s okay to be brief and to the point. Don’t stuff in every technical term — just what matters.
+**BANNED Punctuation:**
+- NO hyphens as sentence breaks: NO em-dashes (—), en-dashes (–), or double dashes (--)
+- Compound words like "full-stack" are OK, but NEVER use hyphens to connect clauses
 
-Let personality show. A moment of humor, curiosity, or honesty makes a letter memorable. The tone should be smart, reflective, and genuine — like someone who really thought about this opportunity and what they bring to it.
+**Do This Instead:**
+- Start sentences with strong, varied openings
+- Use active voice and concrete verbs
+- Show impact with specific examples or results
+- Keep a professional but human tone
+- Vary sentence structure naturally
+- Replace vague words with concrete details and numbers
 
-Keep paragraphs between 100 and 140 words.
+**Content Rules:**
+- Don't repeat points from previous paragraphs
+- Only mention skills/projects that directly relate to this job
+- Keep paragraphs between 100-140 words
+- Focus on what you bring to the role, not generic praise of the company
+- Every sentence must contain specific, concrete information
 
-Write a short, varied paragraph. No headers, markdown, or commentary — just the final plain text letter.
+Write only the paragraph content in plain text. No headers, no markdown, no commentary.
 """
 
 def build_header_prompt(company_desc, user_yaml, date):
@@ -102,17 +191,19 @@ Company address
 company city, company province code company postal code
 """
 
-def generate_header(user_yaml=None, job_yaml=None, api_key=""):
+def generate_header(user_yaml=None, job_yaml=None, api_key="", provider="gemini"):
     base_dir = Path(__file__).parent
     job_desc = job_yaml if job_yaml else load_file(str(base_dir / "inputs" / "job_desc.yaml"))
     user = user_yaml if user_yaml else load_file(str(base_dir / "inputs" / "user.yaml"))
     prompt = build_header_prompt(job_desc, user, date.today())
-    model = "models/gemini-2.5-flash"
-    response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Header Generation")
+    model = get_model_for_provider(provider)
+    fallback_models = get_fallback_models(provider)
+    response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Header Generation", provider=provider, fallback_models=fallback_models)
     return response
 
-def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key=""):
-    model = "models/gemini-2.5-flash"
+def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key="", provider="gemini", additional_instructions=""):
+    model = get_model_for_provider(provider)
+    fallback_models = get_fallback_models(provider)
     paragraphs = []
     base_dir = Path(__file__).parent
     for i in range(par_count):
@@ -120,32 +211,36 @@ def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key="
         template_path = str(base_dir / "inputs" / "templates" / f"template_p{i+1}.txt")
         template = load_file(template_path)
         previous = "\n\n".join(paragraphs)
-        prompt = build_cover_letter_prompt(template, user_yaml, job_yaml, previous)
-        response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name=f"Paragraph {i+1}")
+        prompt = build_cover_letter_prompt(template, user_yaml, job_yaml, previous, additional_instructions)
+        response = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name=f"Paragraph {i+1}", provider=provider, fallback_models=fallback_models)
         print(f"  -> Fixing paragraph {i+1}...")
-        response = generate_fixed(response, api_key=api_key)
+        response = generate_fixed(response, api_key=api_key, provider=provider, fallback_models=fallback_models)
         paragraphs.append(response)
         print(f"  [OK] Paragraph {i+1} complete")
     
     cover_letter = "\n\n".join(paragraphs)
     print(f"\n  -> Removing bloat from cover letter...")
-    cover_letter = remove_bloat(cover_letter, api_key=api_key)
+    cover_letter = remove_bloat(cover_letter, api_key=api_key, provider=provider, fallback_models=fallback_models)
+    
+    print(f"\n  -> Reducing repetition...")
+    cover_letter = reduce_repetition(cover_letter, api_key=api_key, provider=provider, fallback_models=fallback_models)
+    print(f"  [OK] Repetition check complete")
 
     if writing_sample:
         print(f"\n  -> Personalizing with writing sample...")
         from user_tuning import humanify_prompt
         personalization_prompt = humanify_prompt(writing_sample, cover_letter)
-        cover_letter = generate_with_retry(model, personalization_prompt, max_retries=5, api_key=api_key, step_name="Personalization")
+        cover_letter = generate_with_retry(model, personalization_prompt, max_retries=5, api_key=api_key, step_name="Personalization", provider=provider, fallback_models=fallback_models)
         print(f"  [OK] Personalization complete")
     
     print(f"\n  -> Generating header...")
-    header = generate_header(user_yaml, job_yaml, api_key=api_key)
+    header = generate_header(user_yaml, job_yaml, api_key=api_key, provider=provider)
     print(f"  [OK] Header complete")
     print(f"\n  -> Getting company name...")
     try:
         job_dict = yaml_to_dict(job_yaml)
         company_name = job_dict.get('job_profile', {}).get('company', 'Hiring Team')
-        company_name = get_shortened_name(company_name, api_key=api_key)
+        company_name = get_shortened_name(company_name, api_key=api_key, provider=provider)
         greeting = f"Dear {company_name} hiring team,"
         print(f"  [OK] Company name: {company_name}")
     except (yaml.YAMLError, AttributeError):
@@ -157,15 +252,43 @@ def generate_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, api_key="
     name = user_dict.get('user_profile', {}).get('name', {})
     closing = f"Best Regards,\n{name}"
     
-    cover_letter = re.sub(r'—', ',', cover_letter)
+    # Clean up AI patterns
+    cover_letter = re.sub(r'[\u201C\u201D]', '"', cover_letter)  # Replace curly quotes with straight
+    cover_letter = re.sub(r'[\u2018\u2019]', "'", cover_letter)  # Replace curly apostrophes
+    
+    # Intelligently fix hyphens with AI (if any exist)
+    if re.search(r'\s+[-–—]+\s+', cover_letter):
+        print(f"\n  -> Removing hyphens...")
+        cover_letter = fix_hyphens(cover_letter, api_key=api_key, provider=provider, fallback_models=fallback_models)
+        print(f"  [OK] Hyphens removed")
+    
+    # Quality check before finalizing
+    print(f"\n  -> Running quality check...")
+    is_valid, issues = validate_cover_letter(cover_letter)
+    if not is_valid:
+        print(f"  [WARNING] Quality issues detected: {len(issues)} problems")
+        for issue in issues:
+            print(f"     - {issue}")
+        print(f"  -> Applying additional fixes...")
+        # Run repetition reducer again if validation failed
+        cover_letter = reduce_repetition(cover_letter, api_key=api_key, provider=provider)
+        # Check again
+        is_valid_retry, issues_retry = validate_cover_letter(cover_letter)
+        if is_valid_retry:
+            print(f"  [OK] Quality check passed after fixes")
+        else:
+            print(f"  [WARNING] Still has {len(issues_retry)} issues (acceptable)")
+    else:
+        print(f"  [OK] Quality check passed")
+    
     cover_letter = header + "\n\n\n" + greeting + "\n\n" + cover_letter + "\n\n" + closing
     return cover_letter
 
-def get_best_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, num=1, api_key=""):
-    cover_letter = generate_cl(user_yaml, job_yaml, writing_sample, par_count, api_key=api_key)
+def get_best_cl(user_yaml, job_yaml, writing_sample=None, par_count=4, num=1, api_key="", provider="gemini", additional_instructions=""):
+    cover_letter = generate_cl(user_yaml, job_yaml, writing_sample, par_count, api_key=api_key, provider=provider, additional_instructions=additional_instructions)
     if (num > 1):
         for i in range(num):
-            cover_letter2 = generate_cl(user_yaml, job_yaml, writing_sample, par_count, api_key=api_key)
+            cover_letter2 = generate_cl(user_yaml, job_yaml, writing_sample, par_count, api_key=api_key, additional_instructions=additional_instructions)
             eval1 = evaluate_cl(cover_letter, api_key=api_key)
             eval2 = evaluate_cl(cover_letter2, api_key=api_key)
             comparison = compare_cls(cover_letter, eval1, cover_letter2, eval2, api_key=api_key)

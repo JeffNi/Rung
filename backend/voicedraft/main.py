@@ -71,7 +71,10 @@ class CoverLetterRequest(BaseModel):
     user_profile: UserProfile
     job_description: str  # Now a string (pasted job description)
     writing_sample: str
-    paragraph_count: int = 4
+    paragraph_count: int = 3
+    provider: str = "gemini"  # AI provider: "gemini" or "groq"
+    api_key: str = ""  # API key for the provider
+    additional_instructions: str = ""  # Optional additional instructions for the AI
 
 class CoverLetterResponse(BaseModel):
     cover_letter: str
@@ -146,23 +149,36 @@ async def generate_cover_letter(request: Request):
         user_profile = data.get('user_profile')
         job_description = data.get('job_description')
         writing_sample = data.get('writing_sample', '')
-        paragraph_count = data.get('paragraph_count', 4)
+        paragraph_count = data.get('paragraph_count', 3)
         api_key = data.get('api_key', '')
+        provider = data.get('provider', 'gemini')  # Default to Gemini
+        additional_instructions = data.get('additional_instructions', '')
         
+        print(f"[PROVIDER] Using {provider.upper()} for generation")
+        
+        # Use server-side API key if client doesn't provide one
         if not api_key:
-            print("ERROR: No API key provided in request!")
-            raise HTTPException(status_code=400, detail="API key is required")
+            if provider == "groq":
+                api_key = os.getenv("GROQ_API_KEY", "")
+            else:
+                api_key = os.getenv("GEMINI_API_KEY", "")
+            
+            if not api_key:
+                print("ERROR: No API key provided and no server key configured!")
+                raise HTTPException(status_code=400, detail="API key is required")
         
         print(f"[Step 2/7] Creating user profile YAML...")
         user_yaml = create_temp_user_yaml(user_profile)
         print("[OK] User profile created")
         
         print(f"[Step 3/7] Parsing job description with AI...")
-        job_yaml = generate_job_yaml(job_description, api_key)
+        job_yaml = generate_job_yaml(job_description, api_key, provider=provider)
         print("[OK] Job description parsed")
         
         print(f"[Step 4/7] Generating cover letter ({paragraph_count} paragraphs + header)...")
-        cl = get_best_cl(user_yaml, job_yaml, writing_sample, paragraph_count, api_key=api_key)
+        if additional_instructions:
+            print(f"  [INFO] Using additional instructions: {additional_instructions[:100]}...")
+        cl = get_best_cl(user_yaml, job_yaml, writing_sample, paragraph_count, api_key=api_key, provider=provider, additional_instructions=additional_instructions)
         
         print("\n" + "="*60)
         print("COVER LETTER GENERATION COMPLETE!")
