@@ -2,20 +2,19 @@ Jeff Ni
 6476793263
 jeffni96@gmail.com
 
-2026-01-20
+2026-01-29
 
-TDAM
+PitchBook, a Morningstar company  
+USA - West
 
 
-Dear TDAM hiring team,
+Dear Hiring Team,
 
-My name’s Jeff Ni, and I’m looking to join the Business Innovation team at TDAM as an AI/ML Engineer. What drew me into this role is its clear focus on building AI tools that really make a difference,generating revenue and cutting down on risk. This lines up perfectly with how I approach AI projects: I want to translate complex data into practical solutions, driving solid, data-driven decisions, especially in finance. It just feels like the right place to take my machine learning background and apply it to real business challenges.
+Delivering high-impact AI and machine learning capabilities is crucial at PitchBook, and my expertise in natural language processing and machine learning makes me a strong fit. During my tenure at Smart Waterloo Region, I achieved a 20% improvement in chatbot accuracy by leveraging OpenAI embeddings and Python, thereby gaining a deeper understanding of user inquiries. My experience demonstrates that I can successfully design, build, and deploy AI and machine learning models with a focus on NLP, summarization, and information retrieval. By applying my machine learning and NLP expertise, I can help drive valuable insights on the PitchBook Platform.
 
-Take Bree Technologies, for example. I built a predictive model there that nailed forecasting card network failures, generating an estimated $1.2M in annual revenue and directly slashing risk. Achieving that meant engineering 120 features and then clustering them to boost explainability and speed up training. My curiosity doesn't stop with established methods; I’m always pushing into newer tech. I fine-tuned a Mistral 7B model for automated data conversion at Orderholic, for instance, hitting 99% accuracy. That hands-on drive and a constant curiosity for advanced AI is what I'm eager to bring to TDAM, especially since your team’s got a strong focus on GenAI and practical application.
+My experience at Smart Waterloo Region saw a significant 20% boost in chatbot accuracy, courtesy of OpenAI embeddings, which aligns with PitchBook's requirement for high-impact AI and ML solutions that drive insights. This achievement underscores my proficiency in natural language processing and machine learning, with hands-on experience in utilizing classifiers, transformer models, and popular ML libraries such as PyTorch. By harnessing Python and OpenAI skills, I enhanced the chatbot's ability to comprehend user inquiries, showcasing my capability to design, build, and deploy AI/ML models that prioritize NLP, summarization, and information retrieval. This accomplishment highlights my potential to contribute to the development of reliable and efficient systems.
 
-Honestly, the team's commitment to continuous learning and new technologies is a big part of why I'm drawn here. My curiosity is a huge driver,it’s how I taught myself fine-tuning for Orderholic, or even how I built a complex RTS game from scratch. I’m ready to dive into cloud engineering with Azure and contribute to those deeper system discussions. When you combine my skills in data structures and algorithms with my knack for quickly picking up new tools, I think I’m a strong fit to build out AI solutions for TDAM, especially anything involving GenAI.
-
-I’m confident I can apply my AI/ML background to TDAM’s real business challenges. My drive for impactful projects really aligns with your focus on solutions that generate revenue, reduce risk, and even explore new ground like Azure cloud engineering. My curiosity and problem-solving approach means I'm going to quickly contribute to your team’s work. Thanks for your time and considering my application. I’d be eager to discuss what I can bring to the table in an interview.
+Having worked extensively with natural language processing and machine learning, I possess the necessary skills to develop cutting-edge AI and ML capabilities. A notable example is my use of OpenAI embeddings to achieve a 20% improvement in chatbot accuracy at Smart Waterloo Region, demonstrating my ability to design, build, and deploy AI/ML models focused on language, summarization, and information retrieval. This experience aligns with PitchBook's need for hands-on expertise in NLP and machine learning. By applying my Python and OpenAI skills, I enabled the chatbot to better understand user inquiries, showcasing my capacity to contribute to high-performance systems. I am eager to discuss how my expertise can support PitchBook in achieving its objectives and driving insights on the PitchBook Platform. I appreciate your consideration of my application and would welcome the opportunity to delve into this role further during an interview.
 
 Best Regards,
 Jeff Ni

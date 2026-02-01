@@ -4,6 +4,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import google.generativeai as genai
 from utils import generate_with_retry, load_yaml
+from provider_config import get_model_for_provider, get_fallback_models
 
 def build_yaml_prompt(template_path: str, job_desc: str) -> str:
     # Load YAML template as raw text
@@ -35,7 +36,7 @@ def strip_code_fence(text: str) -> str:
         return "\n".join(lines[1:-1])
     return text
 
-def generate_job_yaml(job_description_text=None, api_key=None):
+def generate_job_yaml(job_description_text=None, api_key=None, provider="gemini"):
     if api_key == None:
         # Load .env relative to the repository root (one level up from this module)
         dotenv_path = Path(__file__).resolve().parent.parent / ".env"
@@ -58,9 +59,10 @@ def generate_job_yaml(job_description_text=None, api_key=None):
 
     prompt = build_yaml_prompt(template_path, job_desc)
 
-    model = "models/gemini-2.5-flash"
+    model = get_model_for_provider(provider)
+    fallback_models = get_fallback_models(provider)
     # Forward api_key so deployment doesn't rely on a local .env
-    yaml = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Job YAML Generation")
+    yaml = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Job YAML Generation", provider=provider, fallback_models=fallback_models)
     yaml = strip_code_fence(yaml)
     
     # For backward compatibility, still write to file if no text provided
@@ -94,7 +96,7 @@ def ensure_generate_job_yaml(max_retries=3, delay=2):
         time.sleep(delay)
     raise RuntimeError(f"Failed to generate a valid job YAML after {max_retries} attempts.")
 
-def get_shortened_name(name, api_key=None):
+def get_shortened_name(name, api_key=None, provider="gemini"):
     prompt = f"""Given a company name, return a shortened version suitable for casual or brand reference.
 
 Remove generic suffixes like "LLC", "Inc", "Technologies", "Solutions", "Vision", etc.
@@ -106,8 +108,9 @@ Return only the core, identifiable name (e.g. "Virtek Vision" -> "Virtek", "Bree
 Here is the company name to shorten:
 {name}"""
 
-    model = "models/gemini-2.5-flash"
-    shortened = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Company Name Shortening")
+    model = get_model_for_provider(provider)
+    fallback_models = get_fallback_models(provider)
+    shortened = generate_with_retry(model, prompt, max_retries=5, api_key=api_key, step_name="Company Name Shortening", provider=provider, fallback_models=fallback_models)
     shortened = strip_code_fence(shortened)
     return shortened
 

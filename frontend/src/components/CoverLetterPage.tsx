@@ -28,6 +28,14 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
   const [jobDescription, setJobDescription] = useState({
     description: ''
   });
+  
+  const [additionalInstructions, setAdditionalInstructions] = useState('');
+  const [instructionPresets, setInstructionPresets] = useState<{[key: string]: string}>({});
+  const [selectedPreset, setSelectedPreset] = useState('');
+  const [showSavePreset, setShowSavePreset] = useState(false);
+  const [newPresetName, setNewPresetName] = useState('');
+  
+  const [provider, setProvider] = useState('gemini'); // 'gemini' or 'groq'
 
   const [coverLetter, setCoverLetter] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -47,6 +55,18 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
       loadProfile(user.uid);
     }
   }, [user]);
+
+  // Load instruction presets from localStorage
+  useEffect(() => {
+    const savedPresets = localStorage.getItem('instructionPresets');
+    if (savedPresets) {
+      try {
+        setInstructionPresets(JSON.parse(savedPresets));
+      } catch (e) {
+        console.error('Failed to load instruction presets:', e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (showModal) {
@@ -170,8 +190,10 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
           },
           job_description: jobDescription.description,
           writing_sample: writingSample || '',
-          paragraph_count: 4,
-          api_key: localStorage.getItem('apiKey') || ''
+          paragraph_count: 3,
+          provider: provider,
+          api_key: localStorage.getItem('apiKey') || '',
+          additional_instructions: additionalInstructions
         })
       });
 
@@ -187,6 +209,45 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
       setError('Unable to connect to the server. Please check if the API is running.');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const savePreset = () => {
+    if (!newPresetName.trim()) {
+      alert('Please enter a preset name');
+      return;
+    }
+    if (!additionalInstructions.trim()) {
+      alert('Please enter some instructions to save');
+      return;
+    }
+    const updatedPresets = {
+      ...instructionPresets,
+      [newPresetName]: additionalInstructions
+    };
+    setInstructionPresets(updatedPresets);
+    localStorage.setItem('instructionPresets', JSON.stringify(updatedPresets));
+    setNewPresetName('');
+    setShowSavePreset(false);
+    alert(`Preset "${newPresetName}" saved!`);
+  };
+
+  const loadPreset = (presetName: string) => {
+    if (presetName && instructionPresets[presetName]) {
+      setAdditionalInstructions(instructionPresets[presetName]);
+      setSelectedPreset(presetName);
+    }
+  };
+
+  const deletePreset = (presetName: string) => {
+    if (window.confirm(`Delete preset "${presetName}"?`)) {
+      const updatedPresets = { ...instructionPresets };
+      delete updatedPresets[presetName];
+      setInstructionPresets(updatedPresets);
+      localStorage.setItem('instructionPresets', JSON.stringify(updatedPresets));
+      if (selectedPreset === presetName) {
+        setSelectedPreset('');
+      }
     }
   };
 
@@ -228,7 +289,28 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
           <p style={{ marginTop: '0.5rem' }}>Create personalized cover letters using AI</p>
         </div>
         <div className="form-section wide-form-section" style={{ minHeight: '40vh' }}>
-          <h3>Job Description</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3>Job Description</h3>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.9rem', color: '#6b7280' }}>AI Provider:</span>
+              <select 
+                value={provider} 
+                onChange={(e) => setProvider(e.target.value)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.375rem',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#1f2937',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem'
+                }}
+              >
+                <option value="gemini" style={{ color: '#1f2937' }}>Gemini (20/day free)</option>
+                <option value="groq" style={{ color: '#1f2937' }}>Groq (14,400/day free) ⚡</option>
+              </select>
+            </div>
+          </div>
           <div className="form-group">
             <label htmlFor="jobDescription">Paste the full job description here</label>
             <textarea
@@ -239,6 +321,123 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
               rows={10}
               placeholder="Paste the complete job description, including title, company, requirements, responsibilities, etc..."
               className="job-description-textarea"
+            />
+          </div>
+          <div className="form-group" style={{ marginTop: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <label htmlFor="additionalInstructions">Additional Instructions (Optional)</label>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                {Object.keys(instructionPresets).length > 0 && (
+                  <>
+                    <select
+                      value={selectedPreset}
+                      onChange={(e) => {
+                        setSelectedPreset(e.target.value);
+                        if (e.target.value) loadPreset(e.target.value);
+                      }}
+                      style={{
+                        padding: '0.4rem 0.6rem',
+                        fontSize: '0.85rem',
+                        borderRadius: '6px',
+                        border: '1px solid #d1d5db',
+                        backgroundColor: 'white',
+                        color: '#1f2937',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="" style={{ color: '#1f2937' }}>Load Preset...</option>
+                      {Object.keys(instructionPresets).map(name => (
+                        <option key={name} value={name} style={{ color: '#1f2937' }}>{name}</option>
+                      ))}
+                    </select>
+                    {selectedPreset && (
+                      <button
+                        onClick={() => deletePreset(selectedPreset)}
+                        style={{
+                          padding: '0.4rem 0.8rem',
+                          fontSize: '0.85rem',
+                          borderRadius: '6px',
+                          border: '1px solid #dc2626',
+                          backgroundColor: 'white',
+                          color: '#dc2626',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </>
+                )}
+                <button
+                  onClick={() => setShowSavePreset(!showSavePreset)}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    fontSize: '0.85rem',
+                    borderRadius: '6px',
+                    border: '1px solid #3b82f6',
+                    backgroundColor: 'white',
+                    color: '#3b82f6',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showSavePreset ? 'Cancel' : 'Save as Preset'}
+                </button>
+              </div>
+            </div>
+            {showSavePreset && (
+              <div style={{ 
+                display: 'flex', 
+                gap: '0.5rem', 
+                marginBottom: '0.75rem',
+                padding: '0.75rem',
+                backgroundColor: '#f3f4f6',
+                borderRadius: '6px'
+              }}>
+                <input
+                  type="text"
+                  value={newPresetName}
+                  onChange={(e) => setNewPresetName(e.target.value)}
+                  placeholder="Preset name (e.g., 'Startup Focus')"
+                  style={{
+                    flex: 1,
+                    padding: '0.5rem',
+                    fontSize: '0.9rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px'
+                  }}
+                />
+                <button
+                  onClick={savePreset}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.9rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+            )}
+            <textarea
+              id="additionalInstructions"
+              value={additionalInstructions}
+              onChange={(e) => setAdditionalInstructions(e.target.value)}
+              rows={3}
+              placeholder="Add any specific instructions for the AI (e.g., 'Focus on leadership skills', 'Keep it under 300 words', 'Emphasize remote work experience')..."
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                fontSize: '0.95rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                fontFamily: 'inherit',
+                resize: 'vertical',
+                color: '#000000'
+              }}
             />
           </div>
         </div>
