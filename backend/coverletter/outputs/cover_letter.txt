@@ -1,0 +1,25 @@
+Jeff Ni 
+6476793263
+jeffni96@gmail.com
+
+2026-03-15
+
+Charger logistics Inc.  
+ 
+Note: The company description does not provide a specific address, location, or postal code, so this information is left out.
+
+
+Dear Charger hiring team,
+
+My background in AI solutions has equipped me to make a valuable contribution to Charger Logistics Inc.'s R&D team. During my tenure at Bree Technologies, I developed a predictive model that forecasted card network failures with 0.86 accuracy and 0.57 precision, resulting in an estimated $1.2M in annual revenue. By leveraging PyTorch, I constructed the model and incorporated 120 new features, thereby reducing the feature set by over 50% while maintaining high performance. This expertise demonstrates my capability to design, develop, and test innovative software prototypes that utilize cutting-edge AI concepts, aligning with the responsibilities of the AI Engineer role at Charger Logistics Inc.
+
+At Bree Technologies, the development of a test suite for a chatbot enabled the automation of a process that previously required over an hour. This accomplishment directly supports Charger Logistics Inc.'s objective of rapidly building and testing AI applications. By utilizing OpenAI embeddings, I enhanced the chatbot's accuracy by 20%, thereby improving its ability to comprehend user inputs. Through the application of statistical analysis and computational modeling, I effectively addressed uncertainty and made a tangible impact on the company's operations. This endeavor taught me how to design, build, and test software prototypes, including the exploration of novel AI ideas, a crucial aspect of the AI Engineer role at Charger Logistics Inc.
+
+The opportunity to join Charger Logistics Inc. appeals to me because I can design, develop, and test innovative software utilizing the latest AI principles. My experience in building a card network failure prediction model using PyTorch, which achieved 0.86 accuracy and 0.57 precision, could yield annual savings of approximately $1.2M. The incorporation of 120 new features, resulting in a 50% reduction in features without compromising performance, showcases my ability to leverage statistical analysis and computational power to enhance AI decision-making.
+
+My experience with chatbot development at Bree Technologies aligns with Charger Logistics Inc.'s goals, particularly in the rapid development and testing of AI applications. The utilization of OpenAI embeddings to improve the chatbot's accuracy by 20% demonstrates my ability to enhance user understanding. This project highlights my capacity to collaborate with cross-functional teams and translate research into practical, business-impacting ideas. With hands-on experience in relevant technologies, I am confident in my suitability for the AI Engineer role.
+
+The alignment of my skills and experience with the AI Engineer position at Charger Logistics Inc. is something I am eager to discuss. Thank you for considering my application.
+
+Best Regards,
+Jeff Ni

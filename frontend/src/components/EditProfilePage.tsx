@@ -2,19 +2,38 @@ import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
-import type { UserProfile } from './ProfileModal';
+import type { UserProfile, ExperienceEntry } from './ProfileModal';
 import '../styles/components/ProfileModal.css';
+
+// AI bullet with tracking
+interface AiBullet {
+  text: string;
+  jobId: string;
+  originalText: string;  // Track original to detect edits
+}
 
 // Add Experience type
 interface Experience {
   title: string;
+  company: string;
+  location: string;
+  startDate: string;
+  endDate: string;
   achievements: string[];
+  aiBullets: AiBullet[];
+  context: string;
 }
 
 // Add Project type
 interface Project {
   title: string;
+  company: string;
+  location: string;
+  startDate: string;
+  endDate: string;
   details: string[];
+  aiBullets: AiBullet[];
+  context: string;
 }
 
 // Add dynamic list helpers
@@ -57,10 +76,7 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
     writingSample: ''
   });
   const [experiences, setExperiences] = useState<Experience[]>([]);
-  // Add editing state for experience titles
-  const [editingTitleIdx, setEditingTitleIdx] = useState<number | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [editingProjectTitleIdx, setEditingProjectTitleIdx] = useState<number | null>(null);
 
   const skillsList = useDynamicList();
   const coursesList = useDynamicList();
@@ -68,6 +84,13 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
   const valuesList = useDynamicList();
   const interestsList = useDynamicList();
   const [editingInterestIdx, setEditingInterestIdx] = useState<number | null>(null);
+
+  // LaTeX resume state
+  const [latexFile, setLatexFile] = useState<File | null>(null);
+  const [latexContent, setLatexContent] = useState<string>('');
+  const [latexUrl, setLatexUrl] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const CHIP_MAX = 24;
   const [editingSkillIdx, setEditingSkillIdx] = useState<number | null>(null);
@@ -94,18 +117,40 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
     try {
       const profileDoc = await getDoc(doc(db, 'userProfiles', userId));
       if (profileDoc.exists()) {
-        const data = profileDoc.data() as UserProfile;
+        const data = profileDoc.data() as any; // May be old or new format
         // Parse experience
-        const expArr: Experience[] = Object.entries(data.experience || {}).map(([title, achievements]) => ({
-          title,
-          achievements: Array.isArray(achievements) ? achievements : [],
-        }));
+        const expArr: Experience[] = Object.entries(data.experience || {} as Record<string, any>).map(([title, entry]: [string, any]) => {
+          // Handle both old format (string[]) and new format (ExperienceEntry)
+          const isOldFormat = Array.isArray(entry);
+          const bullets = isOldFormat ? entry : (entry as ExperienceEntry).bullets || [];
+          const aiEntries = isOldFormat ? {} : (entry as ExperienceEntry).ai_bullets || {};
+          const context = isOldFormat ? '' : (entry as ExperienceEntry).context || '';
+          // Flatten ai_bullets into AiBullet[] for UI
+          const aiBullets: AiBullet[] = [];
+          for (const [jobId, jobBullets] of Object.entries(aiEntries)) {
+            for (const b of jobBullets) {
+              aiBullets.push({ text: b, jobId, originalText: b });
+            }
+          }
+          const entryData = entry as ExperienceEntry;
+          return { title, company: entryData.company || '', location: entryData.location || '', startDate: entryData.startDate || '', endDate: entryData.endDate || '', achievements: bullets, aiBullets, context };
+        });
         setExperiences(expArr);
         // Parse projects
-        const projArr: Project[] = Object.entries(data.projects || {}).map(([title, details]) => ({
-          title,
-          details: Array.isArray(details) ? details : [],
-        }));
+        const projArr: Project[] = Object.entries(data.projects || {}).map(([title, entry]) => {
+          const isOldFormat = Array.isArray(entry);
+          const bullets = isOldFormat ? entry : (entry as ExperienceEntry).bullets || [];
+          const aiEntries = isOldFormat ? {} : (entry as ExperienceEntry).ai_bullets || {};
+          const context = isOldFormat ? '' : (entry as ExperienceEntry).context || '';
+          const aiBullets: AiBullet[] = [];
+          for (const [jobId, jobBullets] of Object.entries(aiEntries)) {
+            for (const b of jobBullets) {
+              aiBullets.push({ text: b, jobId, originalText: b });
+            }
+          }
+          const entryData = entry as ExperienceEntry;
+          return { title, company: entryData.company || '', location: entryData.location || '', startDate: entryData.startDate || '', endDate: entryData.endDate || '', details: bullets, aiBullets, context };
+        });
         setProjects(projArr);
         skillsList.setItems(data.skills || []);
         coursesList.setItems(data.courses || []);
@@ -121,54 +166,15 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
           interests: data.interests?.join(', ') || '',
           writingSample: data.writingSample || ''
         });
+        if (data.latexContent) {
+          setLatexContent(data.latexContent);
+        }
       }
     } catch (error) {
       console.error('Error loading profile:', error);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const formatExperience = (experience: Record<string, string[]>): string => {
-    if (!experience) return '';
-    return Object.entries(experience)
-      .map(([company, tasks]) => `${company}:\n${tasks.map(t => `- ${t}`).join('\n')}`)
-      .join('\n\n');
-  };
-
-  const formatProjects = (projects: Record<string, string[]>): string => {
-    if (!projects) return '';
-    return Object.entries(projects)
-      .map(([project, details]) => `${project}:\n${details.map(d => `- ${d}`).join('\n')}`)
-      .join('\n\n');
-  };
-
-  const parseExperience = (experienceText: string): Record<string, string[]> => {
-    const experience: Record<string, string[]> = {};
-    const sections = experienceText.split('\n\n').filter(s => s.trim());
-    sections.forEach(section => {
-      const lines = section.split('\n').filter(l => l.trim());
-      if (lines.length > 0) {
-        const company = lines[0].replace(':', '');
-        const tasks = lines.slice(1).filter(task => task.trim().startsWith('-'));
-        experience[company] = tasks.map(task => task.trim().substring(1).trim());
-      }
-    });
-    return experience;
-  };
-
-  const parseProjects = (projectsText: string): Record<string, string[]> => {
-    const projects: Record<string, string[]> = {};
-    const sections = projectsText.split('\n\n').filter(s => s.trim());
-    sections.forEach(section => {
-      const lines = section.split('\n').filter(l => l.trim());
-      if (lines.length > 0) {
-        const project = lines[0].replace(':', '');
-        const details = lines.slice(1).filter(detail => detail.trim().startsWith('-'));
-        projects[project] = details.map(detail => detail.trim().substring(1).trim());
-      }
-    });
-    return projects;
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -183,13 +189,25 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
   const handleExperienceTitleChange = (idx: number, value: string) => {
     setExperiences(prev => prev.map((exp, i) => i === idx ? { ...exp, title: value } : exp));
   };
+  const handleExperienceCompanyChange = (idx: number, value: string) => {
+    setExperiences(prev => prev.map((exp, i) => i === idx ? { ...exp, company: value } : exp));
+  };
+  const handleExperienceLocationChange = (idx: number, value: string) => {
+    setExperiences(prev => prev.map((exp, i) => i === idx ? { ...exp, location: value } : exp));
+  };
+  const handleExperienceStartDateChange = (idx: number, value: string) => {
+    setExperiences(prev => prev.map((exp, i) => i === idx ? { ...exp, startDate: value } : exp));
+  };
+  const handleExperienceEndDateChange = (idx: number, value: string) => {
+    setExperiences(prev => prev.map((exp, i) => i === idx ? { ...exp, endDate: value } : exp));
+  };
   const handleAchievementChange = (expIdx: number, achIdx: number, value: string) => {
     setExperiences(prev => prev.map((exp, i) =>
       i === expIdx ? { ...exp, achievements: exp.achievements.map((a, j) => j === achIdx ? value : a) } : exp
     ));
   };
   const addExperience = () => {
-    setExperiences(prev => [...prev, { title: '', achievements: [''] }]);
+    setExperiences(prev => [...prev, { title: '', company: '', location: '', startDate: '', endDate: '', achievements: [''], aiBullets: [], context: '' }]);
   };
   const removeExperience = (idx: number) => {
     setExperiences(prev => prev.filter((_, i) => i !== idx));
@@ -209,13 +227,25 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
   const handleProjectTitleChange = (idx: number, value: string) => {
     setProjects(prev => prev.map((proj, i) => i === idx ? { ...proj, title: value } : proj));
   };
+  const handleProjectCompanyChange = (idx: number, value: string) => {
+    setProjects(prev => prev.map((proj, i) => i === idx ? { ...proj, company: value } : proj));
+  };
+  const handleProjectLocationChange = (idx: number, value: string) => {
+    setProjects(prev => prev.map((proj, i) => i === idx ? { ...proj, location: value } : proj));
+  };
+  const handleProjectStartDateChange = (idx: number, value: string) => {
+    setProjects(prev => prev.map((proj, i) => i === idx ? { ...proj, startDate: value } : proj));
+  };
+  const handleProjectEndDateChange = (idx: number, value: string) => {
+    setProjects(prev => prev.map((proj, i) => i === idx ? { ...proj, endDate: value } : proj));
+  };
   const handleDetailChange = (projIdx: number, detIdx: number, value: string) => {
     setProjects(prev => prev.map((proj, i) =>
       i === projIdx ? { ...proj, details: proj.details.map((d, j) => j === detIdx ? value : d) } : proj
     ));
   };
   const addProject = () => {
-    setProjects(prev => [...prev, { title: '', details: [''] }]);
+    setProjects(prev => [...prev, { title: '', company: '', location: '', startDate: '', endDate: '', details: [''], aiBullets: [], context: '' }]);
   };
   const removeProject = (idx: number) => {
     setProjects(prev => prev.filter((_, i) => i !== idx));
@@ -231,20 +261,101 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
     ));
   };
 
+  // LaTeX file handlers
+  const handleLatexFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.name.endsWith('.tex')) {
+      setUploadError('Please upload a .tex file');
+      return;
+    }
+    
+    setUploadError('');
+    setLatexFile(file);
+    
+    // Read file content
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      setLatexContent(content);
+    };
+    reader.readAsText(file);
+  };
+
+  const readLatexFile = async (): Promise<{ content: string } | null> => {
+    if (!latexFile) return null;
+    return { content: latexContent };
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setIsSaving(true);
     try {
-      // Convert experiences to object
-      const experienceObj: Record<string, string[]> = {};
+      // Convert experiences to new ExperienceEntry format
+      const experienceObj: Record<string, ExperienceEntry> = {};
       experiences.forEach(exp => {
-        if (exp.title.trim()) experienceObj[exp.title] = exp.achievements.filter(a => a.trim());
+        if (exp.title.trim()) {
+          // Separate AI bullets: edited ones become user bullets, unchanged stay as AI
+          const userBullets = [...exp.achievements.filter(a => a.trim())];
+          const remainingAi: Record<string, string[]> = {};
+          for (const ab of exp.aiBullets) {
+            if (ab.text !== ab.originalText) {
+              // User edited this AI bullet — promote to user bullet
+              if (ab.text.trim()) userBullets.push(ab.text);
+            } else {
+              // Unchanged AI bullet — keep as AI
+              if (!remainingAi[ab.jobId]) remainingAi[ab.jobId] = [];
+              remainingAi[ab.jobId].push(ab.text);
+            }
+          }
+          experienceObj[exp.title] = {
+            company: exp.company,
+            title: exp.title,
+            location: exp.location,
+            startDate: exp.startDate,
+            endDate: exp.endDate,
+            bullets: userBullets,
+            ai_bullets: remainingAi,
+            context: exp.context
+          };
+        }
       });
-      // Convert projects to object
-      const projectsObj: Record<string, string[]> = {};
+      // Convert projects to new ExperienceEntry format
+      const projectsObj: Record<string, ExperienceEntry> = {};
       projects.forEach(proj => {
-        if (proj.title.trim()) projectsObj[proj.title] = proj.details.filter(d => d.trim());
+        if (proj.title.trim()) {
+          const userBullets = [...proj.details.filter(d => d.trim())];
+          const remainingAi: Record<string, string[]> = {};
+          for (const ab of proj.aiBullets) {
+            if (ab.text !== ab.originalText) {
+              if (ab.text.trim()) userBullets.push(ab.text);
+            } else {
+              if (!remainingAi[ab.jobId]) remainingAi[ab.jobId] = [];
+              remainingAi[ab.jobId].push(ab.text);
+            }
+          }
+          projectsObj[proj.title] = {
+            company: proj.company,
+            title: proj.title,
+            location: proj.location,
+            startDate: proj.startDate,
+            endDate: proj.endDate,
+            bullets: userBullets,
+            ai_bullets: remainingAi,
+            context: proj.context
+          };
+        }
       });
+      
+      // Use LaTeX content directly (stored in Firestore, no Storage upload needed)
+      let latexData: { content?: string } = {};
+      if (latexFile) {
+        latexData = { content: latexContent };
+      } else if (latexContent) {
+        latexData = { content: latexContent };
+      }
+      
       const newProfile: UserProfile = {
         name: formData.name,
         title: formData.title,
@@ -259,10 +370,12 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
         goals: goalsList.items.filter(s => s.trim()),
         values: valuesList.items.filter(s => s.trim()),
         interests: interestsList.items.filter(s => s.trim()),
-        writingSample: formData.writingSample
+        writingSample: formData.writingSample,
+        latexUrl: null,
+        latexContent: latexData.content || null
       };
       await setDoc(doc(db, 'userProfiles', user.uid), newProfile);
-      setCurrentPage('cover-letter');
+      setCurrentPage('apply');
     } catch (error) {
       console.error('Error saving profile:', error);
     } finally {
@@ -302,33 +415,49 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
             <label>Experience</label>
             {experiences.map((exp, expIdx) => (
               <div key={expIdx} style={{ border: '1px solid #3b82f6', borderRadius: 8, padding: 12, marginBottom: 16, background: 'rgba(59,130,246,0.05)' }}>
-                {editingTitleIdx === expIdx ? (
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                    <input
-                      type="text"
-                      placeholder="Job Title at Company"
-                      value={exp.title}
-                      onChange={e => handleExperienceTitleChange(expIdx, e.target.value)}
-                      style={{ width: '100%', marginRight: 8 }}
-                      autoFocus
-                    />
-                    <button type="button" onClick={() => setEditingTitleIdx(null)} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>✔</button>
-                  </div>
-                ) : exp.title ? (
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontWeight: 600, fontSize: '1.1rem', color: '#3b82f6' }}>{exp.title}</span>
-                    <button type="button" onClick={() => setEditingTitleIdx(expIdx)} style={{ marginLeft: 8, color: '#3b82f6', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>✎</button>
-                  </div>
-                ) : (
+                {/* Title and Company - both in blue */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, gap: 8 }}>
                   <input
                     type="text"
-                    placeholder="Job Title at Company"
+                    placeholder="Job Title"
                     value={exp.title}
                     onChange={e => handleExperienceTitleChange(expIdx, e.target.value)}
-                    style={{ width: '100%', marginBottom: 8 }}
-                    autoFocus
+                    style={{ flex: 1, fontWeight: 600, fontSize: '1.1rem', color: '#3b82f6', background: 'transparent', border: 'none', borderBottom: '1px dashed #3b82f6', padding: '4px 0' }}
                   />
-                )}
+                  <span style={{ color: '#64748b' }}>at</span>
+                  <input
+                    type="text"
+                    placeholder="Company"
+                    value={exp.company}
+                    onChange={e => handleExperienceCompanyChange(expIdx, e.target.value)}
+                    style={{ flex: 1, fontWeight: 600, fontSize: '1.1rem', color: '#3b82f6', background: 'transparent', border: 'none', borderBottom: '1px dashed #3b82f6', padding: '4px 0' }}
+                  />
+                </div>
+                {/* Location and Dates */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  <input
+                    type="text"
+                    placeholder="Location (e.g., San Francisco, CA)"
+                    value={exp.location}
+                    onChange={e => handleExperienceLocationChange(expIdx, e.target.value)}
+                    style={{ flex: 1, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Start Date"
+                    value={exp.startDate}
+                    onChange={e => handleExperienceStartDateChange(expIdx, e.target.value)}
+                    style={{ width: 100, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                  />
+                  <span style={{ color: '#64748b', alignSelf: 'center' }}>–</span>
+                  <input
+                    type="text"
+                    placeholder="End Date"
+                    value={exp.endDate}
+                    onChange={e => handleExperienceEndDateChange(expIdx, e.target.value)}
+                    style={{ width: 100, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                  />
+                </div>
                 {exp.achievements.map((ach, achIdx) => (
                   <div key={achIdx} style={{ display: 'flex', alignItems: 'center', marginBottom: 4, transition: 'background 0.2s' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#e0e7ff'}
@@ -348,6 +477,43 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
                 ))}
                 <button type="button" onClick={() => addAchievement(expIdx)} style={{ color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4 }}>+ Add Achievement</button>
                 <button type="button" onClick={() => removeExperience(expIdx)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 12 }}>Remove Experience</button>
+                {/* AI-generated bullets with dark background */}
+                {exp.aiBullets.length > 0 && (
+                  <div style={{ marginTop: 12 }}>
+                    <span style={{ fontSize: '0.85rem', color: '#9ca3af', fontStyle: 'italic' }}>AI-Generated Bullets</span>
+                    {exp.aiBullets.map((ab, abIdx) => (
+                      <div key={`ai-${abIdx}`} style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                        <input
+                          type="text"
+                          value={ab.text}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setExperiences(prev => prev.map((ex, i) =>
+                              i === expIdx ? { ...ex, aiBullets: ex.aiBullets.map((b, j) => j === abIdx ? { ...b, text: val } : b) } : ex
+                            ));
+                          }}
+                          style={{ flex: 1, background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                        />
+                        <span style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: 6, whiteSpace: 'nowrap' }}>{ab.jobId}</span>
+                        <button type="button" onClick={() => {
+                          setExperiences(prev => prev.map((ex, i) =>
+                            i === expIdx ? { ...ex, aiBullets: ex.aiBullets.filter((_, j) => j !== abIdx) } : ex
+                          ));
+                        }} style={{ marginLeft: 4, color: '#ef4444', background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Context field */}
+                <div style={{ marginTop: 8 }}>
+                  <textarea
+                    placeholder="Context: team size, company scale, technologies, metrics (helps AI generate better bullets)"
+                    value={exp.context}
+                    onChange={e => setExperiences(prev => prev.map((ex, i) => i === expIdx ? { ...ex, context: e.target.value } : ex))}
+                    rows={2}
+                    style={{ width: '100%', fontSize: '0.85rem', background: 'rgba(59,130,246,0.02)', border: '1px dashed #475569', borderRadius: 4, padding: 8, color: '#94a3b8', resize: 'vertical' }}
+                  />
+                </div>
               </div>
             ))}
             <button type="button" onClick={addExperience} style={{ color: '#3b82f6', background: 'none', border: '1px solid #3b82f6', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}>+ Add Experience</button>
@@ -356,33 +522,49 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
             <label>Projects</label>
             {projects.map((proj, projIdx) => (
               <div key={projIdx} style={{ border: '1px solid #3b82f6', borderRadius: 8, padding: 12, marginBottom: 16, background: 'rgba(59,130,246,0.05)' }}>
-                {editingProjectTitleIdx === projIdx ? (
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                    <input
-                      type="text"
-                      placeholder="Project Name"
-                      value={proj.title}
-                      onChange={e => handleProjectTitleChange(projIdx, e.target.value)}
-                      style={{ width: '100%', marginRight: 8 }}
-                      autoFocus
-                    />
-                    <button type="button" onClick={() => setEditingProjectTitleIdx(null)} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>✔</button>
-                  </div>
-                ) : proj.title ? (
-                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontWeight: 600, fontSize: '1.1rem', color: '#3b82f6' }}>{proj.title}</span>
-                    <button type="button" onClick={() => setEditingProjectTitleIdx(projIdx)} style={{ marginLeft: 8, color: '#3b82f6', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer' }}>✎</button>
-                  </div>
-                ) : (
+                {/* Title and Company - both in blue */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8, gap: 8 }}>
                   <input
                     type="text"
                     placeholder="Project Name"
                     value={proj.title}
                     onChange={e => handleProjectTitleChange(projIdx, e.target.value)}
-                    style={{ width: '100%', marginBottom: 8 }}
-                    autoFocus
+                    style={{ flex: 1, fontWeight: 600, fontSize: '1.1rem', color: '#3b82f6', background: 'transparent', border: 'none', borderBottom: '1px dashed #3b82f6', padding: '4px 0' }}
                   />
-                )}
+                  <span style={{ color: '#64748b' }}>at</span>
+                  <input
+                    type="text"
+                    placeholder="Organization (optional)"
+                    value={proj.company}
+                    onChange={e => handleProjectCompanyChange(projIdx, e.target.value)}
+                    style={{ flex: 1, fontWeight: 600, fontSize: '1.1rem', color: '#3b82f6', background: 'transparent', border: 'none', borderBottom: '1px dashed #3b82f6', padding: '4px 0' }}
+                  />
+                </div>
+                {/* Location and Dates */}
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  <input
+                    type="text"
+                    placeholder="Location (optional)"
+                    value={proj.location}
+                    onChange={e => handleProjectLocationChange(projIdx, e.target.value)}
+                    style={{ flex: 1, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Start Date"
+                    value={proj.startDate}
+                    onChange={e => handleProjectStartDateChange(projIdx, e.target.value)}
+                    style={{ width: 100, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                  />
+                  <span style={{ color: '#64748b', alignSelf: 'center' }}>–</span>
+                  <input
+                    type="text"
+                    placeholder="End Date"
+                    value={proj.endDate}
+                    onChange={e => handleProjectEndDateChange(projIdx, e.target.value)}
+                    style={{ width: 100, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                  />
+                </div>
                 {proj.details.map((det, detIdx) => (
                   <div key={detIdx} style={{ display: 'flex', alignItems: 'center', marginBottom: 4, transition: 'background 0.2s' }}
                     onMouseEnter={e => e.currentTarget.style.background = '#e0e7ff'}
@@ -402,6 +584,43 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
                 ))}
                 <button type="button" onClick={() => addDetail(projIdx)} style={{ color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4 }}>+ Add Detail</button>
                 <button type="button" onClick={() => removeProject(projIdx)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 12 }}>Remove Project</button>
+                {/* AI-generated bullets with dark background */}
+                {proj.aiBullets.length > 0 && (
+                  <div style={{ marginTop: 12 }}>
+                    <span style={{ fontSize: '0.85rem', color: '#9ca3af', fontStyle: 'italic' }}>AI-Generated Bullets</span>
+                    {proj.aiBullets.map((ab, abIdx) => (
+                      <div key={`ai-${abIdx}`} style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                        <input
+                          type="text"
+                          value={ab.text}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setProjects(prev => prev.map((p, i) =>
+                              i === projIdx ? { ...p, aiBullets: p.aiBullets.map((b, j) => j === abIdx ? { ...b, text: val } : b) } : p
+                            ));
+                          }}
+                          style={{ flex: 1, background: '#1e293b', color: '#e2e8f0', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                        />
+                        <span style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: 6, whiteSpace: 'nowrap' }}>{ab.jobId}</span>
+                        <button type="button" onClick={() => {
+                          setProjects(prev => prev.map((p, i) =>
+                            i === projIdx ? { ...p, aiBullets: p.aiBullets.filter((_, j) => j !== abIdx) } : p
+                          ));
+                        }} style={{ marginLeft: 4, color: '#ef4444', background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Context field */}
+                <div style={{ marginTop: 8 }}>
+                  <textarea
+                    placeholder="Context: team size, company scale, technologies, metrics (helps AI generate better bullets)"
+                    value={proj.context}
+                    onChange={e => setProjects(prev => prev.map((p, i) => i === projIdx ? { ...p, context: e.target.value } : p))}
+                    rows={2}
+                    style={{ width: '100%', fontSize: '0.85rem', background: 'rgba(59,130,246,0.02)', border: '1px dashed #475569', borderRadius: 4, padding: 8, color: '#94a3b8', resize: 'vertical' }}
+                  />
+                </div>
               </div>
             ))}
             <button type="button" onClick={addProject} style={{ color: '#3b82f6', background: 'none', border: '1px solid #3b82f6', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}>+ Add Project</button>
@@ -618,12 +837,114 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
             <label htmlFor="writingSample">Writing Sample (optional)</label>
             <textarea id="writingSample" name="writingSample" value={formData.writingSample} onChange={handleInputChange} rows={3} />
           </div>
+          <div className="form-group" style={{ border: '1px solid #3b82f6', borderRadius: 8, padding: 16, background: 'rgba(59,130,246,0.05)' }}>
+            <label style={{ fontWeight: 600, color: '#3b82f6', marginBottom: 8, display: 'block' }}>
+              LaTeX Resume (optional)
+            </label>
+            <p style={{ fontSize: '0.9rem', marginBottom: 12, color: '#9ca3af' }}>
+              Upload your LaTeX resume template. We'll use this to generate tailored versions by modifying specific sections.
+            </p>
+            <input
+              type="file"
+              accept=".tex"
+              onChange={handleLatexFileChange}
+              style={{ display: 'none' }}
+              id="latex-upload"
+            />
+            <label htmlFor="latex-upload" style={{ cursor: 'pointer' }}>
+              <div style={{
+                border: '2px dashed #3b82f6',
+                borderRadius: 8,
+                padding: '20px',
+                textAlign: 'center',
+                background: 'rgba(59,130,246,0.1)'
+              }}>
+                {latexFile ? (
+                  <div>
+                    <span style={{ color: '#3b82f6', fontWeight: 500 }}> {latexFile.name}</span>
+                    <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: 4 }}>
+                      {isUploading ? 'Uploading...' : 'Ready to upload on save'}
+                    </p>
+                  </div>
+                ) : latexContent ? (
+                  <div>
+                    <span style={{ color: '#22c55e', fontWeight: 500 }}>✓ Resume template saved</span>
+                    <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: 4 }}>
+                      Upload a new file to replace it
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <span style={{ fontSize: '1.5rem' }}> </span>
+                    <p style={{ color: '#3b82f6', marginTop: 8 }}>Click to upload .tex file</p>
+                    <p style={{ fontSize: '0.8rem', color: '#6b7280' }}>Supports: .tex</p>
+                  </div>
+                )}
+              </div>
+            </label>
+            {uploadError && (
+              <p style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: 8 }}>{uploadError}</p>
+            )}
+            {latexContent && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                  <button
+                    type="button"
+                    onClick={async (e) => {
+                      const btn = e.currentTarget;
+                      btn.textContent = 'Compiling...';
+                      btn.disabled = true;
+                      setUploadError('');
+                      try {
+                        const res = await fetch('http://localhost:8000/compile-latex', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ text: latexContent })
+                        });
+                        if (!res.ok) {
+                          const err = await res.text();
+                          setUploadError('Compile error: ' + err.slice(0, 300));
+                          return;
+                        }
+                        const blob = await res.blob();
+                        const url = URL.createObjectURL(blob);
+                        window.open(url, '_blank');
+                      } catch {
+                        setUploadError('Failed to reach backend. Is it running?');
+                      } finally {
+                        btn.textContent = 'Preview compiled PDF';
+                        btn.disabled = false;
+                      }
+                    }}
+                    style={{ fontSize: '0.85rem', color: '#3b82f6', background: 'none', border: '1px solid #3b82f6', borderRadius: 4, padding: '4px 10px', cursor: 'pointer' }}
+                  >
+                    Preview compiled PDF
+                  </button>
+                  <details style={{ display: 'inline' }}>
+                    <summary style={{ color: '#6b7280', cursor: 'pointer', fontSize: '0.85rem', listStyle: 'none' }}>View source</summary>
+                    <pre style={{
+                      background: '#1f2937',
+                      padding: 12,
+                      borderRadius: 4,
+                      fontSize: '0.8rem',
+                      maxHeight: 200,
+                      overflow: 'auto',
+                      marginTop: 8,
+                      color: '#e5e7eb'
+                    }}>
+                      {latexContent.slice(0, 2000)}{latexContent.length > 2000 ? '\n...' : ''}
+                    </pre>
+                  </details>
+                </div>
+              </div>
+            )}
+          </div>
           <div className="form-actions" style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem' }}>
             <button
               type="button"
               className="btn-cancel"
               style={{ backgroundColor: '#ef4444', color: 'white', minWidth: '100px', height: '36px', fontSize: '0.875rem', border: 'none', borderRadius: '0.375rem', fontWeight: 500, cursor: 'pointer' }}
-              onClick={() => setCurrentPage('cover-letter')}
+              onClick={() => setCurrentPage('apply')}
             >
               Cancel
             </button>
@@ -637,4 +958,4 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
   );
 };
 
-export default EditProfilePage; 
+export default EditProfilePage;

@@ -331,6 +331,9 @@ ui-debug.log
 functions/lib/
 functions/node_modules/
 
+### Windsurf ###
+.windsurf/
+
 ### IDE ###
 # VSCode
 .vscode/*
