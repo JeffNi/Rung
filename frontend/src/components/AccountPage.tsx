@@ -54,11 +54,40 @@ const AccountPage: React.FC = () => {
     clearStoredApiKey();
   };
 
+  const validateApiKey = (key: string): { valid: boolean; provider: string; message: string } => {
+    if (!key || key.trim().length === 0) {
+      return { valid: false, provider: 'none', message: 'API key is empty' };
+    }
+    
+    // Check for Gemini key format
+    if (key.startsWith('AIza') && key.length >= 35) {
+      return { valid: true, provider: 'gemini', message: 'Valid Gemini API key format' };
+    }
+    
+    // Check for Groq key format
+    if (key.startsWith('gsk_') && key.length >= 40) {
+      return { valid: true, provider: 'groq', message: 'Valid Groq API key format' };
+    }
+    
+    // Invalid format
+    let message = `Invalid API key format (${key.length} chars). `;
+    if (key.length === 56) {
+      message += 'This looks like a Firebase UID, not an API key. ';
+    }
+    message += 'Expected: Gemini (starts with "AIza") or Groq (starts with "gsk_")';
+    
+    return { valid: false, provider: 'unknown', message };
+  };
+
   const handleAddApiKey = () => {
     if (newApiKey.trim() === '') {
       clearStoredApiKey();
       setApiKey('');
     } else {
+      const validation = validateApiKey(newApiKey);
+      if (!validation.valid) {
+        alert(`⚠️ Warning: ${validation.message}\n\nPlease make sure you're using the correct API key from:\n- Gemini: https://aistudio.google.com/apikey\n- Groq: https://console.groq.com`);
+      }
       setStoredApiKey(newApiKey);
       setApiKey(newApiKey);
     }
@@ -126,19 +155,47 @@ const AccountPage: React.FC = () => {
               <div className="info-item">
                 <label>API Key:</label>
                 {apiKey ? (
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem', letterSpacing: '0.2em' }}>
-                    <span style={{ background: '#f3f4f6', borderRadius: '0.25rem', padding: '0.25rem 1.5rem', border: '1px solid #d1d5db', fontSize: '1.2rem', color: '#374151' }}>
-                      {'•'.repeat(8)}
+                  <div>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.2rem', letterSpacing: '0.2em' }}>
+                      <span style={{ background: '#f3f4f6', borderRadius: '0.25rem', padding: '0.25rem 1.5rem', border: '1px solid #d1d5db', fontSize: '1.2rem', color: '#374151' }}>
+                        {'•'.repeat(8)}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        style={{ fontSize: '0.9rem', padding: '0.25rem 0.75rem', marginLeft: '1rem' }}
+                        onClick={() => { setNewApiKey(apiKey); setShowApiKeyModal(true); }}
+                      >
+                        Change
+                      </button>
                     </span>
-                    <button
-                      type="button"
-                      className="btn-primary"
-                      style={{ fontSize: '0.9rem', padding: '0.25rem 0.75rem', marginLeft: '1rem' }}
-                      onClick={() => { setNewApiKey(apiKey); setShowApiKeyModal(true); }}
-                    >
-                      Change
-                    </button>
-                  </span>
+                    {(() => {
+                      const validation = validateApiKey(apiKey);
+                      if (!validation.valid) {
+                        return (
+                          <div style={{ 
+                            marginTop: '0.5rem', 
+                            padding: '0.75rem', 
+                            backgroundColor: '#fef2f2', 
+                            border: '1px solid #ef4444', 
+                            borderRadius: '0.375rem',
+                            fontSize: '0.9rem',
+                            color: '#991b1b'
+                          }}>
+                            <strong>⚠️ Invalid API Key Format</strong><br/>
+                            {validation.message}<br/>
+                            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>Get Gemini Key</a> | <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>Get Groq Key</a>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#059669' }}>
+                            ✓ {validation.message} ({validation.provider.toUpperCase()})
+                          </div>
+                        );
+                      }
+                    })()}
+                  </div>
                 ) : (
                   <span className="not-verified" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ fontSize: '1.2rem', color: '#ef4444' }}>✗</span> No API key
@@ -171,12 +228,17 @@ const AccountPage: React.FC = () => {
               <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Add API Key</h2>
             </div>
             <div className="modal-body" style={{ marginBottom: '1.5rem' }}>
+              <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#f0f9ff', border: '1px solid #3b82f6', borderRadius: '0.375rem', fontSize: '0.9rem' }}>
+                <strong>Get a free API key:</strong><br/>
+                <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>Gemini (starts with "AIza")</a> - 20 requests/day<br/>
+                <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>Groq (starts with "gsk_")</a> - 14,400 requests/day ⚡
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <input
                   type={showApiKeyModalValue ? 'text' : 'password'}
                   value={newApiKey}
                   onChange={e => setNewApiKey(e.target.value)}
-                  placeholder="Enter API key"
+                  placeholder="Enter API key (AIza... or gsk_...)"
                   style={{ width: '100%', fontSize: '1rem', padding: '0.5rem 2.5rem 0.5rem 0.5rem', borderRadius: '0.25rem', border: '1px solid #d1d5db', background: '#f3f4f6' }}
                 />
                 <button

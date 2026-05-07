@@ -8,6 +8,17 @@ from dotenv import load_dotenv
 
 # This file contains shared functions
 
+# Track cumulative token usage per session
+_token_usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0}
+
+def get_token_usage():
+    """Return cumulative token usage."""
+    return dict(_token_usage)
+
+def reset_token_usage():
+    """Reset token counters."""
+    _token_usage.update({"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "calls": 0})
+
 # Gemini Model Options and Rate Limits (as of 2026):
 # - gemini-2.5-flash: Fast, cheap, ~15 RPM free tier, ~1000 RPM paid tier
 # - gemini-2.5-pro: More capable, slower, ~2 RPM free tier, ~1000 RPM paid tier
@@ -66,17 +77,25 @@ def generate_with_groq(model, prompt, max_retries=20, api_key=None, step_name="A
                     temperature=0.7,
                     max_tokens=2048
                 )
-                print(f"[{step_name}] [OK] Success!")
-                
-                # Groq is fast, minimal delay needed
-                print(f"[{step_name}] Waiting 2s before next API call...")
-                time.sleep(2)
+                usage = response.usage
+                _token_usage["prompt_tokens"] += usage.prompt_tokens
+                _token_usage["completion_tokens"] += usage.completion_tokens
+                _token_usage["total_tokens"] += usage.total_tokens
+                _token_usage["calls"] += 1
+                print(f"[{step_name}] [OK] Success! Tokens: {usage.prompt_tokens} in / {usage.completion_tokens} out (session total: {_token_usage['total_tokens']})")
                 
                 return response.choices[0].message.content.strip()
                 
             except Exception as e:
                 error_str = str(e)
                 retries += 1
+                
+                # Check for authentication/API key errors - fail fast
+                if "invalid api key" in error_str.lower() or "authentication" in error_str.lower() or "401" in error_str:
+                    print(f"[{step_name}] INVALID API KEY - Authentication failed")
+                    print(f"[{step_name}] Error: {error_str}")
+                    # Don't retry or try other models - API key is invalid
+                    raise Exception("Invalid API key. Please check your API key and try again.")
                 
                 # Check if it's a DAILY quota limit (tokens per day)
                 if "tokens per day" in error_str.lower() or "TPD" in error_str:
@@ -94,14 +113,8 @@ def generate_with_groq(model, prompt, max_retries=20, api_key=None, step_name="A
                         time.sleep(rate_limit_wait)
                         rate_limit_wait = min(rate_limit_wait * 2, 60)  # Cap at 60s for rate limits
                 else:
-                    print(f"[{step_name}] ERROR: {type(e).__name__}: {error_str}")
-                    if retries < max_retries:
-                        wait_time = base_wait_time * (2 ** (retries - 1))
-                        wait_time = min(wait_time, 120)
-                        print(f"[{step_name}] Waiting {wait_time}s before retrying...")
-                        time.sleep(wait_time)
-                    else:
-                        break
+                    print(f"[{step_name}] ERROR (non-retryable): {type(e).__name__}: {error_str}")
+                    raise
     
     print(f"[{step_name}] FAILED: All models exhausted")
     raise Exception(f"Max retries exceeded for {step_name} (tried {len(models_to_try)} models)")
@@ -128,11 +141,17 @@ def generate_with_gemini(model, prompt, max_retries=20, api_key=None, step_name=
             print(f"[{step_name}] Attempt {retries + 1}/{max_retries}")
             gen_model = genai.GenerativeModel(model)
             response = gen_model.generate_content(prompt)
-            print(f"[{step_name}] [OK] Success!")
-            
-            # Add delay after successful call to prevent rate limit (20 RPM = ~3s per request)
-            print(f"[{step_name}] Waiting 4s before next API call to respect rate limits...")
-            time.sleep(4)
+            # Track Gemini token usage
+            try:
+                usage = response.usage_metadata
+                _token_usage["prompt_tokens"] += usage.prompt_token_count
+                _token_usage["completion_tokens"] += usage.candidates_token_count
+                _token_usage["total_tokens"] += usage.total_token_count
+                _token_usage["calls"] += 1
+                print(f"[{step_name}] [OK] Success! Tokens: {usage.prompt_token_count} in / {usage.candidates_token_count} out (session total: {_token_usage['total_tokens']})")
+            except Exception:
+                _token_usage["calls"] += 1
+                print(f"[{step_name}] [OK] Success! (token count unavailable)")
             
             return response.text.strip()
         except ResourceExhausted as e:
@@ -144,10 +163,9 @@ def generate_with_gemini(model, prompt, max_retries=20, api_key=None, step_name=
                 time.sleep(wait_time)
                 wait_time *= 2
         except Exception as e:
-            print(f"[{step_name}] ERROR: {type(e).__name__}: {str(e)}")
-            retries += 1
-            if retries >= max_retries:
-                break
+            error_str = str(e)
+            print(f"[{step_name}] ERROR (non-retryable): {type(e).__name__}: {error_str}")
+            raise
     print(f"[{step_name}] FAILED: Max retries exceeded")
     raise Exception(f"Max retries exceeded for {step_name}")
 

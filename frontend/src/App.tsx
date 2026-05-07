@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import HomePage from './components/HomePage';
 import ResumePage from './components/ResumePage';
-import CoverLetterPage from './components/CoverLetterPage';
+import ApplyPage from './components/ApplyPage';
+import ProfilePage from './components/EditProfilePage';
 import LoginPage from './components/LoginPage';
 import AccountPage from './components/AccountPage';
-import EditProfilePage from './components/EditProfilePage';
 import { useParallax } from './hooks/useParallax';
 import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -37,10 +37,10 @@ function App() {
         return <HomePage />;
       case 'resume':
         return <ResumePage />;
-      case 'cover-letter':
-        return <CoverLetterPage setCurrentPage={setCurrentPage} />;
-      case 'edit-profile':
-        return <EditProfilePage setCurrentPage={setCurrentPage} />;
+      case 'apply':
+        return <ApplyPage setCurrentPage={setCurrentPage} />;
+      case 'profile':
+        return <ProfilePage setCurrentPage={setCurrentPage} />;
       case 'login':
         return <LoginPage />;
       case 'account':
@@ -97,16 +97,16 @@ function App() {
               Home
             </button>
             <button 
-              className={`nav-link ${currentPage === 'resume' ? 'active' : ''}`}
-              onClick={() => handleNavClick('resume')}
+              className={`nav-link ${currentPage === 'profile' ? 'active' : ''}`}
+              onClick={() => handleNavClick('profile')}
             >
-              Resume
+              Profile
             </button>
             <button 
-              className={`nav-link ${currentPage === 'cover-letter' ? 'active' : ''}`}
-              onClick={() => handleNavClick('cover-letter')}
+              className={`nav-link ${currentPage === 'apply' ? 'active' : ''}`}
+              onClick={() => handleNavClick('apply')}
             >
-              Cover Letter
+              Apply
             </button>
             <button 
               className={`nav-link ${currentPage === 'login' || currentPage === 'account' ? 'active' : ''}`}

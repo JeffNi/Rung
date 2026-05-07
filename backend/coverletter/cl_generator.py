@@ -4,7 +4,7 @@ from datetime import date
 from pathlib import Path
 import yaml
 from utils import generate_with_retry, load_file, load_yaml
-from company_info import generate_job_yaml, get_shortened_name
+from parsing import generate_job_yaml, get_shortened_name
 from user_tuning import generate_style_prompt, personalize
 from fixer import generate_fixed, remove_bloat, reduce_repetition
 from evaluator import evaluate_cl, compare_cls

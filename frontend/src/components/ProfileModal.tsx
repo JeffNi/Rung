@@ -4,6 +4,17 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import '../styles/components/ProfileModal.css';
 import type { User } from 'firebase/auth';
 
+export interface ExperienceEntry {
+  company: string;
+  title: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  bullets: string[];
+  ai_bullets: Record<string, string[]>;  // job_id -> AI-generated bullets
+  context: string;                        // Grounding info for LLM (team size, scale, etc.)
+}
+
 export interface UserProfile {
   name: string;
   title: string;
@@ -13,12 +24,14 @@ export interface UserProfile {
   };
   skills: string[];
   courses: string[];
-  experience: Record<string, string[]>;
-  projects: Record<string, string[]>;
+  experience: Record<string, ExperienceEntry>;
+  projects: Record<string, ExperienceEntry>;
   goals: string[];
   values: string[];
   interests: string[];
   writingSample?: string;
+  latexUrl?: string | null;
+  latexContent?: string | null;
 }
 
 interface ProfileModalProps {
@@ -108,38 +121,59 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onProfileS
     }
   };
 
-  const formatExperience = (experience: Record<string, string[]>): string => {
+  const formatExperience = (experience: Record<string, ExperienceEntry>): string => {
     if (!experience) return '';
     return Object.entries(experience)
-      .map(([company, tasks]) => `${company}:\n${tasks.join('\n')}`)
+      .map(([company, entry]) => {
+        const bullets = entry.bullets || [];
+        return `${company}:\n${bullets.join('\n')}`;
+      })
       .join('\n\n');
   };
 
-  const formatProjects = (projects: Record<string, string[]>): string => {
+  const formatProjects = (projects: Record<string, ExperienceEntry>): string => {
     if (!projects) return '';
     return Object.entries(projects)
-      .map(([project, details]) => `${project}:\n${details.join('\n')}`)
+      .map(([project, entry]) => {
+        const bullets = entry.bullets || [];
+        return `${project}:\n${bullets.join('\n')}`;
+      })
       .join('\n\n');
   };
 
-  const parseExperience = (experienceText: string): Record<string, string[]> => {
-    const experience: Record<string, string[]> = {};
+  const parseExperience = (experienceText: string): Record<string, ExperienceEntry> => {
+    const experience: Record<string, ExperienceEntry> = {};
     const sections = experienceText.split('\n\n').filter(s => s.trim());
     
     sections.forEach(section => {
       const lines = section.split('\n').filter(l => l.trim());
       if (lines.length > 0) {
-        const company = lines[0].replace(':', '');
+        const titleLine = lines[0].replace(':', '');
         const tasks = lines.slice(1).filter(task => task.trim().startsWith('-'));
-        experience[company] = tasks.map(task => task.trim().substring(1).trim());
+        // Parse company from "Title at Company" format or use title as company
+        const atIndex = titleLine.toLowerCase().indexOf(' at ');
+        const title = atIndex > 0 ? titleLine.substring(0, atIndex).trim() : titleLine;
+        const company = atIndex > 0 ? titleLine.substring(atIndex + 4).trim() : titleLine;
+        // Preserve existing data if available
+        const existing = profile.experience?.[titleLine];
+        experience[titleLine] = {
+          company,
+          title,
+          location: existing?.location || '',
+          startDate: existing?.startDate || '',
+          endDate: existing?.endDate || '',
+          bullets: tasks.map(task => task.trim().substring(1).trim()),
+          ai_bullets: existing?.ai_bullets || {},
+          context: existing?.context || ''
+        };
       }
     });
     
     return experience;
   };
 
-  const parseProjects = (projectsText: string): Record<string, string[]> => {
-    const projects: Record<string, string[]> = {};
+  const parseProjects = (projectsText: string): Record<string, ExperienceEntry> => {
+    const projects: Record<string, ExperienceEntry> = {};
     const sections = projectsText.split('\n\n').filter(s => s.trim());
     
     sections.forEach(section => {
@@ -147,7 +181,17 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onProfileS
       if (lines.length > 0) {
         const project = lines[0].replace(':', '');
         const details = lines.slice(1).filter(detail => detail.trim().startsWith('-'));
-        projects[project] = details.map(detail => detail.trim().substring(1).trim());
+        const existing = profile.projects?.[project];
+        projects[project] = {
+          company: existing?.company || '',
+          title: existing?.title || project,
+          location: existing?.location || '',
+          startDate: existing?.startDate || '',
+          endDate: existing?.endDate || '',
+          bullets: details.map(detail => detail.trim().substring(1).trim()),
+          ai_bullets: existing?.ai_bullets || {},
+          context: existing?.context || ''
+        };
       }
     });
     

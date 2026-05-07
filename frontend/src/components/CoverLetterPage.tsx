@@ -42,12 +42,19 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [hasApiKey, setHasApiKey] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
     });
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    // Check if API key is set
+    const apiKey = localStorage.getItem('apiKey');
+    setHasApiKey(!!apiKey && apiKey.trim().length > 0);
   }, []);
 
   useEffect(() => {
@@ -203,7 +210,14 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
         setShowModal(true);
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Failed to generate cover letter. Please try again.');
+        let errorMessage = errorData.detail || 'Failed to generate cover letter. Please try again.';
+        
+        // Check if it's an API key error
+        if (errorMessage.toLowerCase().includes('invalid api key') || errorMessage.toLowerCase().includes('api key')) {
+          errorMessage = `Invalid API key. Please add a valid ${provider === 'groq' ? 'Groq' : 'Gemini'} API key in your Account page. Get a free API key at ${provider === 'groq' ? 'https://console.groq.com' : 'https://aistudio.google.com/apikey'}`;
+        }
+        
+        setError(errorMessage);
       }
     } catch (error) {
       setError('Unable to connect to the server. Please check if the API is running.');
@@ -288,6 +302,52 @@ const CoverLetterPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
           <h1>Cover Letter Generator</h1>
           <p style={{ marginTop: '0.5rem' }}>Create personalized cover letters using AI</p>
         </div>
+        
+        {/* API Key Warning */}
+        {!hasApiKey && (
+          <div style={{
+            backgroundColor: '#fef2f2',
+            border: '2px solid #ef4444',
+            borderRadius: '0.75rem',
+            padding: '1.25rem',
+            marginBottom: '2rem',
+            textAlign: 'center'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</div>
+            <h3 style={{ color: '#dc2626', marginBottom: '0.5rem', fontSize: '1.1rem' }}>API Key Required</h3>
+            <p style={{ color: '#991b1b', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+              You need to add an API key to generate cover letters. Get a free API key from:
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+              <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" 
+                 style={{ color: '#2563eb', textDecoration: 'underline', fontWeight: 500 }}>
+                Google Gemini (20 requests/day free)
+              </a>
+              <span style={{ color: '#991b1b' }}>or</span>
+              <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer" 
+                 style={{ color: '#2563eb', textDecoration: 'underline', fontWeight: 500 }}>
+                Groq (14,400 requests/day free) ⚡
+              </a>
+            </div>
+            <button
+              onClick={() => setCurrentPage('account')}
+              style={{
+                backgroundColor: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.5rem',
+                padding: '0.5rem 1.5rem',
+                fontSize: '1rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                marginTop: '0.5rem'
+              }}
+            >
+              Add API Key in Account Page →
+            </button>
+          </div>
+        )}
+        
         <div className="form-section wide-form-section" style={{ minHeight: '40vh' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h3>Job Description</h3>
