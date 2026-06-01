@@ -345,6 +345,124 @@ async def generate_strategy(request: Request):
         raise HTTPException(status_code=500, detail=f"Strategy generation failed: {str(e)}")
 
 
+@app.post("/generate-resume")
+async def generate_resume(request: Request):
+    """Generate tailored resume: extract keywords → create strategy → fill LaTeX → compile PDF."""
+    import base64
+    import time
+    from drafter import draft_resume
+    from schemas import JobExtraction
+    
+    body = await request.json()
+    user_profile = body.get("user_profile", {})
+    job_description = body.get("job_description", "")
+    provider = body.get("provider", "groq")
+    api_key = body.get("api_key", "")
+    job_id = body.get("job_id", f"job_{int(time.time())}")
+    latex_template = body.get("latex_template", "")
+    
+    if not latex_template:
+        raise HTTPException(status_code=400, detail="LaTeX template required")
+    if not job_description:
+        raise HTTPException(status_code=400, detail="Job description required")
+    
+    try:
+        start_time = time.time()
+        
+        # Step 1: Extract keywords
+        print(f"[RESUME] Step 1: Extracting keywords...")
+        reset_token_usage()
+        extraction = extract_keywords_with_rag(
+            user_profile=user_profile,
+            job_description=job_description,
+            provider=provider,
+            api_key=api_key
+        )
+        extract_tokens = get_token_usage()
+        
+        # Step 2: Create resume strategy
+        print(f"[RESUME] Step 2: Creating strategy...")
+        reset_token_usage()
+        strategy = create_resume_strategy(
+            extraction=extraction,
+            user_profile=user_profile,
+            job_description=job_description,
+            api_key=api_key,
+            provider=provider,
+            job_id=job_id
+        )
+        strategy_tokens = get_token_usage()
+        
+        # Step 3: Draft resume (fill template + compile)
+        print(f"[RESUME] Step 3: Drafting resume...")
+        job_extraction = JobExtraction(
+            must_have=extraction.must_have,
+            nice_to_have=extraction.nice_to_have,
+            keyword_to_experiences=extraction.keyword_to_experiences
+        )
+        
+        draft = draft_resume(
+            strategy=strategy,
+            job_extraction=job_extraction,
+            user_profile=user_profile,
+            latex_template=latex_template,
+            output_dir=tempfile.mkdtemp()
+        )
+        
+        elapsed = time.time() - start_time
+        
+        if not draft.compilation_success:
+            raise HTTPException(status_code=422, detail=f"Resume compilation failed: {draft.compilation_errors}")
+        
+        # Read PDF and encode as base64
+        with open(draft.pdf_path, "rb") as f:
+            pdf_bytes = f.read()
+        pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
+        
+        # Cleanup temp files
+        import shutil
+        shutil.rmtree(os.path.dirname(draft.pdf_path), ignore_errors=True)
+        
+        total_tokens = {
+            "prompt_tokens": extract_tokens["prompt_tokens"] + strategy_tokens["prompt_tokens"],
+            "completion_tokens": extract_tokens["completion_tokens"] + strategy_tokens["completion_tokens"],
+            "total_tokens": extract_tokens["total_tokens"] + strategy_tokens["total_tokens"],
+            "calls": extract_tokens["calls"] + strategy_tokens["calls"]
+        }
+        
+        return {
+            "success": True,
+            "latex_source": draft.latex_source,
+            "pdf_base64": pdf_base64,
+            "strategy": {
+                "experiences": [
+                    {"title": e.title, "should_include": e.should_include, "keywords_covered": e.keywords_covered, "dotjots": e.dotjots}
+                    for e in strategy.selected_experiences
+                ],
+                "skills_strategy": {
+                    "front_load": strategy.skills_strategy.front_load,
+                    "add": strategy.skills_strategy.add,
+                    "keep": strategy.skills_strategy.keep,
+                    "deprioritize": strategy.skills_strategy.deprioritize
+                },
+                "title_suggestions": [
+                    {"original": t.original_title, "suggested": t.suggested_title, "reason": t.reason}
+                    for t in strategy.title_suggestions
+                ]
+            },
+            "token_usage": total_tokens,
+            "elapsed_seconds": round(elapsed, 2)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] Resume generation failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Resume generation failed: {str(e)}")
+
+
 @app.post("/compile-latex")
 async def compile_latex(request: Request):
     """Compile LaTeX locally using pdflatex and return the PDF."""
