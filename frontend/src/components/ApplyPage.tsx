@@ -51,6 +51,34 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
     elapsed_seconds?: number;
   } | null>(null);
   const [isGeneratingStrategy, setIsGeneratingStrategy] = useState(false);
+  const [isGeneratingResume, setIsGeneratingResume] = useState(false);
+  const [resumeResult, setResumeResult] = useState<{
+    success: boolean;
+    latex_source: string;
+    pdf_base64: string;
+    strategy: {
+      experiences: Array<{
+        title: string;
+        should_include: boolean;
+        keywords_covered: string[];
+        dotjots: string[];
+      }>;
+      skills_strategy: {
+        front_load: string[];
+        add: string[];
+        keep: string[];
+        deprioritize: string[];
+      };
+      title_suggestions: Array<{
+        original: string;
+        suggested: string;
+        reason: string;
+      }>;
+    };
+    token_usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number; calls: number };
+    elapsed_seconds?: number;
+  } | null>(null);
+  const [showLatexSource, setShowLatexSource] = useState(false);
   const [strategyResult, setStrategyResult] = useState<{
     experiences: Array<{
       title: string;
@@ -207,6 +235,84 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
       setError('Unable to connect to the server. Please check if the API is running.');
     } finally {
       setIsGeneratingStrategy(false);
+    }
+  };
+
+  const handleGenerateResume = async () => {
+    if (!userProfile) {
+      setError('Please complete your profile first');
+      return;
+    }
+    if (!jobDescription.trim()) {
+      setError('Please enter a job description');
+      return;
+    }
+    if (!userProfile.latexContent) {
+      setError('Please upload a LaTeX resume template in your profile first');
+      return;
+    }
+
+    setIsGeneratingResume(true);
+    setError('');
+    setResumeResult(null);
+    setShowLatexSource(false);
+
+    try {
+      const baseApi = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+      const url = `${baseApi}/generate-resume`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_profile: userProfile,
+          job_description: jobDescription,
+          provider: provider,
+          api_key: localStorage.getItem('apiKey') || '',
+          job_id: `job_${Date.now()}`,
+          latex_template: userProfile.latexContent
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setResumeResult(data);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.detail || 'Failed to generate resume.');
+      }
+    } catch (error) {
+      setError('Unable to connect to the server. Please check if the API is running.');
+    } finally {
+      setIsGeneratingResume(false);
+    }
+  };
+
+  const handleDownloadResumePDF = () => {
+    if (!resumeResult?.pdf_base64) return;
+    const byteCharacters = atob(resumeResult.pdf_base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `resume_${Date.now()}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyLatex = async () => {
+    if (!resumeResult?.latex_source) return;
+    try {
+      await navigator.clipboard.writeText(resumeResult.latex_source);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
   };
 
@@ -462,6 +568,14 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
             >
               {isGenerating ? 'Generating...' : 'Generate Cover Letter'}
             </button>
+            <button 
+              onClick={handleGenerateResume}
+              className="btn-primary"
+              disabled={isGeneratingResume || !userProfile}
+              style={{ minWidth: 200, backgroundColor: '#f59e0b' }}
+            >
+              {isGeneratingResume ? 'Generating Resume...' : 'Generate Resume'}
+            </button>
           </div>
 
           {extractionResult && (
@@ -606,6 +720,77 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {resumeResult && (
+            <div style={{
+              marginTop: '2rem',
+              padding: '1.5rem',
+              background: 'rgba(245, 158, 11, 0.05)',
+              border: '1px solid rgba(245, 158, 11, 0.3)',
+              borderRadius: '0.75rem'
+            }}>
+              <h3 style={{ color: '#f59e0b', marginBottom: '0.5rem' }}>Generated Resume</h3>
+              {(resumeResult.elapsed_seconds !== undefined || resumeResult.token_usage) && (
+                <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '1rem' }}>
+                  {resumeResult.elapsed_seconds !== undefined && <span>{resumeResult.elapsed_seconds}s</span>}
+                  {resumeResult.token_usage && (
+                    <span> &middot; {resumeResult.token_usage.calls} LLM calls &middot; {resumeResult.token_usage.total_tokens} tokens</span>
+                  )}
+                </p>
+              )}
+
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={handleDownloadResumePDF}
+                  className="btn-primary"
+                  style={{ backgroundColor: '#f59e0b', minWidth: 180 }}
+                >
+                  Download PDF
+                </button>
+                <button
+                  onClick={() => setShowLatexSource(!showLatexSource)}
+                  className="btn-secondary"
+                  style={{ minWidth: 180 }}
+                >
+                  {showLatexSource ? 'Hide LaTeX' : 'View LaTeX Source'}
+                </button>
+              </div>
+
+              {showLatexSource && (
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={handleCopyLatex}
+                    style={{
+                      position: 'absolute',
+                      top: '0.5rem',
+                      right: '0.5rem',
+                      padding: '0.25rem 0.75rem',
+                      fontSize: '0.8rem',
+                      background: '#374151',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.25rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Copy
+                  </button>
+                  <pre style={{
+                    background: '#1f2937',
+                    padding: '1rem',
+                    borderRadius: '0.5rem',
+                    fontSize: '0.8rem',
+                    overflow: 'auto',
+                    maxHeight: '300px',
+                    color: '#d1d5db',
+                    margin: 0
+                  }}>
+                    <code>{resumeResult.latex_source}</code>
+                  </pre>
+                </div>
+              )}
             </div>
           )}
         </div>
