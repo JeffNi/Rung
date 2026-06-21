@@ -65,7 +65,7 @@
   border-radius: 0.75rem;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   position: sticky;
-  top: 80px;
+  top: calc(var(--navbar-height) + 1rem);
   z-index: 3;
 }
 
@@ -204,4 +204,81 @@ body.modal-open::-webkit-scrollbar, html.modal-open::-webkit-scrollbar {
 
 .error-message.wide-form-section {
   margin-bottom: 2rem;
-} 
+}
+
+/* Apply page — readable panels on white card */
+.apply-job-banner {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: #92400e;
+  font-weight: 500;
+}
+
+.apply-job-banner strong {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.apply-job-banner a {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.apply-result-panel {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+}
+
+.apply-result-panel h3 {
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.apply-result-panel h4 {
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.apply-result-panel .meta {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.apply-result-panel .body-text {
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.apply-result-panel--purple {
+  background: #f5f3ff;
+  border: 1px solid #c4b5fd;
+}
+
+.apply-result-panel--purple h3 {
+  color: #6d28d9;
+}
+
+.apply-result-panel--green {
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+}
+
+.apply-result-panel--green h3 {
+  color: #047857;
+}
+
+.apply-result-panel--amber {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+}
+
+.apply-result-panel--amber h3 {
+  color: #b45309;
+}

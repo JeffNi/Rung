@@ -3,6 +3,14 @@ import { auth, db } from '../firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import type { UserProfile, ExperienceEntry } from './ProfileModal';
+import {
+  downloadLatexResumePdf,
+  downloadProfileSummaryPdf,
+  previewLatexResumePdf,
+} from '../lib/profilePdf';
+import { normalizeProfileDate } from '../lib/dateUtils';
+import { markProfileUpdated } from '../lib/profileRefresh';
+import { DateRangeFields } from './DateRangeFields';
 import '../styles/components/ProfileModal.css';
 
 // AI bullet with tracking
@@ -61,6 +69,7 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     title: '',
@@ -79,6 +88,8 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
   const [projects, setProjects] = useState<Project[]>([]);
 
   const skillsList = useDynamicList();
+  const searchTitlesList = useDynamicList();
+  const skillsToLearnList = useDynamicList();
   const coursesList = useDynamicList();
   const goalsList = useDynamicList();
   const valuesList = useDynamicList();
@@ -94,6 +105,8 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
 
   const CHIP_MAX = 24;
   const [editingSkillIdx, setEditingSkillIdx] = useState<number | null>(null);
+  const [editingSearchTitleIdx, setEditingSearchTitleIdx] = useState<number | null>(null);
+  const [editingSkillToLearnIdx, setEditingSkillToLearnIdx] = useState<number | null>(null);
   const [editingCourseIdx, setEditingCourseIdx] = useState<number | null>(null);
   const [editingValueIdx, setEditingValueIdx] = useState<number | null>(null);
   const [editingGoalIdx, setEditingGoalIdx] = useState<number | null>(null);
@@ -133,7 +146,16 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
             }
           }
           const entryData = entry as ExperienceEntry;
-          return { title, company: entryData.company || '', location: entryData.location || '', startDate: entryData.startDate || '', endDate: entryData.endDate || '', achievements: bullets, aiBullets, context };
+          return {
+            title,
+            company: entryData.company || '',
+            location: entryData.location || '',
+            startDate: normalizeProfileDate(entryData.startDate || ''),
+            endDate: normalizeProfileDate(entryData.endDate || '', true),
+            achievements: bullets,
+            aiBullets,
+            context,
+          };
         });
         setExperiences(expArr);
         // Parse projects
@@ -149,10 +171,21 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
             }
           }
           const entryData = entry as ExperienceEntry;
-          return { title, company: entryData.company || '', location: entryData.location || '', startDate: entryData.startDate || '', endDate: entryData.endDate || '', details: bullets, aiBullets, context };
+          return {
+            title,
+            company: entryData.company || '',
+            location: entryData.location || '',
+            startDate: normalizeProfileDate(entryData.startDate || ''),
+            endDate: normalizeProfileDate(entryData.endDate || '', true),
+            details: bullets,
+            aiBullets,
+            context,
+          };
         });
         setProjects(projArr);
         skillsList.setItems(data.skills || []);
+        searchTitlesList.setItems(data.searchTitles || []);
+        skillsToLearnList.setItems(data.skillsToLearn || []);
         coursesList.setItems(data.courses || []);
         goalsList.setItems(data.goals || []);
         valuesList.setItems(data.values || []);
@@ -288,93 +321,145 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
     return { content: latexContent };
   };
 
+  const detectProvider = (apiKey: string) => {
+    if (apiKey.startsWith('gsk_')) return 'groq';
+    if (apiKey.length > 20) return 'gemini';
+    return 'gemini';
+  };
+
+  const buildProfileSnapshot = (): UserProfile => {
+    const experienceObj: Record<string, ExperienceEntry> = {};
+    experiences.forEach((exp) => {
+      if (exp.title.trim()) {
+        const userBullets = [...exp.achievements.filter((a) => a.trim())];
+        const remainingAi: Record<string, string[]> = {};
+        for (const ab of exp.aiBullets) {
+          if (ab.text !== ab.originalText) {
+            if (ab.text.trim()) userBullets.push(ab.text);
+          } else {
+            if (!remainingAi[ab.jobId]) remainingAi[ab.jobId] = [];
+            remainingAi[ab.jobId].push(ab.text);
+          }
+        }
+        experienceObj[exp.title] = {
+          company: exp.company,
+          title: exp.title,
+          location: exp.location,
+          startDate: exp.startDate,
+          endDate: exp.endDate,
+          bullets: userBullets,
+          ai_bullets: remainingAi,
+          context: exp.context,
+        };
+      }
+    });
+
+    const projectsObj: Record<string, ExperienceEntry> = {};
+    projects.forEach((proj) => {
+      if (proj.title.trim()) {
+        const userBullets = [...proj.details.filter((d) => d.trim())];
+        const remainingAi: Record<string, string[]> = {};
+        for (const ab of proj.aiBullets) {
+          if (ab.text !== ab.originalText) {
+            if (ab.text.trim()) userBullets.push(ab.text);
+          } else {
+            if (!remainingAi[ab.jobId]) remainingAi[ab.jobId] = [];
+            remainingAi[ab.jobId].push(ab.text);
+          }
+        }
+        projectsObj[proj.title] = {
+          company: proj.company,
+          title: proj.title,
+          location: proj.location,
+          startDate: proj.startDate,
+          endDate: proj.endDate,
+          bullets: userBullets,
+          ai_bullets: remainingAi,
+          context: proj.context,
+        };
+      }
+    });
+
+    let latexData: { content?: string } = {};
+    if (latexFile) {
+      latexData = { content: latexContent };
+    } else if (latexContent) {
+      latexData = { content: latexContent };
+    }
+
+    return {
+      name: formData.name,
+      title: formData.title,
+      contact: {
+        email: formData.email,
+        phone: formData.phone,
+      },
+      skills: skillsList.items.filter((s) => s.trim()),
+      searchTitles: searchTitlesList.items.filter((s) => s.trim()),
+      skillsToLearn: skillsToLearnList.items.filter((s) => s.trim()),
+      courses: coursesList.items.filter((s) => s.trim()),
+      experience: experienceObj,
+      projects: projectsObj,
+      goals: goalsList.items.filter((s) => s.trim()),
+      values: valuesList.items.filter((s) => s.trim()),
+      interests: interestsList.items.filter((s) => s.trim()),
+      writingSample: formData.writingSample,
+      latexUrl: null,
+      latexContent: latexData.content || null,
+    };
+  };
+
+  const handleDownloadProfilePdf = async () => {
+    setUploadError('');
+    setIsDownloadingPdf(true);
+    try {
+      const profile = buildProfileSnapshot();
+      if (profile.latexContent?.trim()) {
+        await downloadLatexResumePdf(profile.latexContent, profile.name);
+      } else {
+        downloadProfileSummaryPdf(profile);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to generate PDF';
+      setUploadError(message);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
     setIsSaving(true);
     try {
-      // Convert experiences to new ExperienceEntry format
-      const experienceObj: Record<string, ExperienceEntry> = {};
-      experiences.forEach(exp => {
-        if (exp.title.trim()) {
-          // Separate AI bullets: edited ones become user bullets, unchanged stay as AI
-          const userBullets = [...exp.achievements.filter(a => a.trim())];
-          const remainingAi: Record<string, string[]> = {};
-          for (const ab of exp.aiBullets) {
-            if (ab.text !== ab.originalText) {
-              // User edited this AI bullet — promote to user bullet
-              if (ab.text.trim()) userBullets.push(ab.text);
-            } else {
-              // Unchanged AI bullet — keep as AI
-              if (!remainingAi[ab.jobId]) remainingAi[ab.jobId] = [];
-              remainingAi[ab.jobId].push(ab.text);
-            }
-          }
-          experienceObj[exp.title] = {
-            company: exp.company,
-            title: exp.title,
-            location: exp.location,
-            startDate: exp.startDate,
-            endDate: exp.endDate,
-            bullets: userBullets,
-            ai_bullets: remainingAi,
-            context: exp.context
-          };
-        }
-      });
-      // Convert projects to new ExperienceEntry format
-      const projectsObj: Record<string, ExperienceEntry> = {};
-      projects.forEach(proj => {
-        if (proj.title.trim()) {
-          const userBullets = [...proj.details.filter(d => d.trim())];
-          const remainingAi: Record<string, string[]> = {};
-          for (const ab of proj.aiBullets) {
-            if (ab.text !== ab.originalText) {
-              if (ab.text.trim()) userBullets.push(ab.text);
-            } else {
-              if (!remainingAi[ab.jobId]) remainingAi[ab.jobId] = [];
-              remainingAi[ab.jobId].push(ab.text);
-            }
-          }
-          projectsObj[proj.title] = {
-            company: proj.company,
-            title: proj.title,
-            location: proj.location,
-            startDate: proj.startDate,
-            endDate: proj.endDate,
-            bullets: userBullets,
-            ai_bullets: remainingAi,
-            context: proj.context
-          };
-        }
-      });
-      
-      // Use LaTeX content directly (stored in Firestore, no Storage upload needed)
-      let latexData: { content?: string } = {};
-      if (latexFile) {
-        latexData = { content: latexContent };
-      } else if (latexContent) {
-        latexData = { content: latexContent };
-      }
-      
-      const newProfile: UserProfile = {
-        name: formData.name,
-        title: formData.title,
-        contact: {
-          email: formData.email,
-          phone: formData.phone
-        },
-        skills: skillsList.items.filter(s => s.trim()),
-        courses: coursesList.items.filter(s => s.trim()),
-        experience: experienceObj,
-        projects: projectsObj,
-        goals: goalsList.items.filter(s => s.trim()),
-        values: valuesList.items.filter(s => s.trim()),
-        interests: interestsList.items.filter(s => s.trim()),
-        writingSample: formData.writingSample,
-        latexUrl: null,
-        latexContent: latexData.content || null
-      };
+      const newProfile = buildProfileSnapshot();
       await setDoc(doc(db, 'userProfiles', user.uid), newProfile);
+
+      const apiKey = localStorage.getItem('apiKey') || '';
+      if (apiKey.trim()) {
+        try {
+          const baseApi = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
+          const suggestRes = await fetch(`${baseApi}/suggest-search-terms`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_profile: newProfile,
+              api_key: apiKey,
+              provider: detectProvider(apiKey),
+            }),
+          });
+          if (suggestRes.ok) {
+            const suggestData = await suggestRes.json();
+            const llmTerms = suggestData.llmSearchTerms || [];
+            if (llmTerms.length > 0) {
+              await setDoc(doc(db, 'userProfiles', user.uid), { llmSearchTerms: llmTerms }, { merge: true });
+            }
+          }
+        } catch (suggestErr) {
+          console.warn('LLM search term suggestion failed:', suggestErr);
+        }
+      }
+
+      markProfileUpdated();
       setCurrentPage('apply');
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -434,28 +519,19 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
                   />
                 </div>
                 {/* Location and Dates */}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                   <input
                     type="text"
                     placeholder="Location (e.g., San Francisco, CA)"
                     value={exp.location}
                     onChange={e => handleExperienceLocationChange(expIdx, e.target.value)}
-                    style={{ flex: 1, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                    style={{ flex: 1, minWidth: 140, fontSize: '0.875rem' }}
                   />
-                  <input
-                    type="text"
-                    placeholder="Start Date"
-                    value={exp.startDate}
-                    onChange={e => handleExperienceStartDateChange(expIdx, e.target.value)}
-                    style={{ width: 100, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
-                  />
-                  <span style={{ color: '#64748b', alignSelf: 'center' }}>–</span>
-                  <input
-                    type="text"
-                    placeholder="End Date"
-                    value={exp.endDate}
-                    onChange={e => handleExperienceEndDateChange(expIdx, e.target.value)}
-                    style={{ width: 100, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                  <DateRangeFields
+                    startDate={exp.startDate}
+                    endDate={exp.endDate}
+                    onStartChange={(value) => handleExperienceStartDateChange(expIdx, value)}
+                    onEndChange={(value) => handleExperienceEndDateChange(expIdx, value)}
                   />
                 </div>
                 {exp.achievements.map((ach, achIdx) => (
@@ -541,28 +617,19 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
                   />
                 </div>
                 {/* Location and Dates */}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                   <input
                     type="text"
                     placeholder="Location (optional)"
                     value={proj.location}
                     onChange={e => handleProjectLocationChange(projIdx, e.target.value)}
-                    style={{ flex: 1, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                    style={{ flex: 1, minWidth: 140, fontSize: '0.875rem' }}
                   />
-                  <input
-                    type="text"
-                    placeholder="Start Date"
-                    value={proj.startDate}
-                    onChange={e => handleProjectStartDateChange(projIdx, e.target.value)}
-                    style={{ width: 100, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
-                  />
-                  <span style={{ color: '#64748b', alignSelf: 'center' }}>–</span>
-                  <input
-                    type="text"
-                    placeholder="End Date"
-                    value={proj.endDate}
-                    onChange={e => handleProjectEndDateChange(projIdx, e.target.value)}
-                    style={{ width: 100, fontSize: '0.9rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', border: '1px solid #475569', borderRadius: 4, padding: '4px 8px' }}
+                  <DateRangeFields
+                    startDate={proj.startDate}
+                    endDate={proj.endDate}
+                    onStartChange={(value) => handleProjectStartDateChange(projIdx, value)}
+                    onEndChange={(value) => handleProjectEndDateChange(projIdx, value)}
                   />
                 </div>
                 {proj.details.map((det, detIdx) => (
@@ -624,6 +691,92 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
               </div>
             ))}
             <button type="button" onClick={addProject} style={{ color: '#3b82f6', background: 'none', border: '1px solid #3b82f6', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}>+ Add Project</button>
+          </div>
+          <div className="form-group">
+            <label>Job search titles <span style={{ color: '#94a3b8', fontWeight: 400 }}>(required for Jobs page)</span></label>
+            <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: 8 }}>
+              Role names to search on Google Jobs — e.g. ML Engineer, AI Engineer. Not your resume title.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40, marginBottom: 4 }}>
+              {searchTitlesList.items.map((title, idx) => (
+                editingSearchTitleIdx === idx ? (
+                  <input
+                    key={idx}
+                    type="text"
+                    value={title}
+                    autoFocus
+                    onChange={e => searchTitlesList.setItem(idx, e.target.value)}
+                    onBlur={() => setEditingSearchTitleIdx(null)}
+                    onKeyDown={e => { if (e.key === 'Enter') setEditingSearchTitleIdx(null); }}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200 }}
+                  />
+                ) : (
+                  <span
+                    key={idx}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(59,130,246,0.05)', color: '#1e40af', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #3b82f6', maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}
+                    title={title}
+                    onClick={() => setEditingSearchTitleIdx(idx)}
+                  >
+                    {title.length > CHIP_MAX ? title.slice(0, CHIP_MAX) + '...' : title}
+                    <button type="button" onClick={e => { e.stopPropagation(); searchTitlesList.removeItem(idx); }} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
+                  </span>
+                )
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+              <input
+                type="text"
+                placeholder="Add search title"
+                value={searchTitlesList.input}
+                onChange={e => searchTitlesList.setInput(e.target.value)}
+                onKeyDown={searchTitlesList.handleInputKeyDown}
+                style={{ minWidth: 140, borderRadius: 16, padding: '4px 12px', fontSize: 14, border: '1px solid #3b82f6', outline: 'none' }}
+              />
+              <button type="button" onClick={searchTitlesList.addItem} style={{ color: '#3b82f6', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>+</button>
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Skills to learn</label>
+            <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: 8 }}>
+              Growth areas — used for search keywords and future ranking boosts.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', minHeight: 40, marginBottom: 4 }}>
+              {skillsToLearnList.items.map((skill, idx) => (
+                editingSkillToLearnIdx === idx ? (
+                  <input
+                    key={idx}
+                    type="text"
+                    value={skill}
+                    autoFocus
+                    onChange={e => skillsToLearnList.setItem(idx, e.target.value)}
+                    onBlur={() => setEditingSkillToLearnIdx(null)}
+                    onKeyDown={e => { if (e.key === 'Enter') setEditingSkillToLearnIdx(null); }}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(16,185,129,0.08)', color: '#047857', borderRadius: 16, padding: '4px 12px', fontSize: 14, border: '1px solid #10b981', maxWidth: 200 }}
+                  />
+                ) : (
+                  <span
+                    key={idx}
+                    style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(16,185,129,0.08)', color: '#047857', borderRadius: 16, padding: '4px 12px 4px 12px', fontSize: 14, border: '1px solid #10b981', maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer' }}
+                    title={skill}
+                    onClick={() => setEditingSkillToLearnIdx(idx)}
+                  >
+                    {skill.length > CHIP_MAX ? skill.slice(0, CHIP_MAX) + '...' : skill}
+                    <button type="button" onClick={e => { e.stopPropagation(); skillsToLearnList.removeItem(idx); }} style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', lineHeight: 1, paddingLeft: 6, paddingRight: 0 }}>&times;</button>
+                  </span>
+                )
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+              <input
+                type="text"
+                placeholder="Add skill to learn"
+                value={skillsToLearnList.input}
+                onChange={e => skillsToLearnList.setInput(e.target.value)}
+                onKeyDown={skillsToLearnList.handleInputKeyDown}
+                style={{ minWidth: 140, borderRadius: 16, padding: '4px 12px', fontSize: 14, border: '1px solid #10b981', outline: 'none' }}
+              />
+              <button type="button" onClick={skillsToLearnList.addItem} style={{ color: '#10b981', background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>+</button>
+            </div>
           </div>
           <div className="form-group">
             <label>Skills</label>
@@ -887,38 +1040,43 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
             )}
             {latexContent && (
               <div style={{ marginTop: 12 }}>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                   <button
                     type="button"
-                    onClick={async (e) => {
-                      const btn = e.currentTarget;
-                      btn.textContent = 'Compiling...';
-                      btn.disabled = true;
+                    onClick={async () => {
                       setUploadError('');
                       try {
-                        const res = await fetch('http://localhost:8000/compile-latex', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ text: latexContent })
-                        });
-                        if (!res.ok) {
-                          const err = await res.text();
-                          setUploadError('Compile error: ' + err.slice(0, 300));
-                          return;
-                        }
-                        const blob = await res.blob();
-                        const url = URL.createObjectURL(blob);
-                        window.open(url, '_blank');
-                      } catch {
-                        setUploadError('Failed to reach backend. Is it running?');
-                      } finally {
-                        btn.textContent = 'Preview compiled PDF';
-                        btn.disabled = false;
+                        await previewLatexResumePdf(latexContent);
+                      } catch (err) {
+                        const message = err instanceof Error ? err.message : 'Failed to compile PDF';
+                        setUploadError(message);
                       }
                     }}
                     style={{ fontSize: '0.85rem', color: '#3b82f6', background: 'none', border: '1px solid #3b82f6', borderRadius: 4, padding: '4px 10px', cursor: 'pointer' }}
                   >
                     Preview compiled PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setUploadError('');
+                      try {
+                        await downloadLatexResumePdf(latexContent, formData.name);
+                      } catch (err) {
+                        const message = err instanceof Error ? err.message : 'Failed to download PDF';
+                        setUploadError(message);
+                      }
+                    }}
+                    style={{ fontSize: '0.85rem', color: '#22c55e', background: 'none', border: '1px solid #22c55e', borderRadius: 4, padding: '4px 10px', cursor: 'pointer' }}
+                  >
+                    Download resume PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => downloadProfileSummaryPdf(buildProfileSnapshot())}
+                    style={{ fontSize: '0.85rem', color: '#6b7280', background: 'none', border: '1px solid #6b7280', borderRadius: 4, padding: '4px 10px', cursor: 'pointer' }}
+                  >
+                    Download profile summary
                   </button>
                   <details style={{ display: 'inline' }}>
                     <summary style={{ color: '#6b7280', cursor: 'pointer', fontSize: '0.85rem', listStyle: 'none' }}>View source</summary>
@@ -939,7 +1097,7 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
               </div>
             )}
           </div>
-          <div className="form-actions" style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem' }}>
+          <div className="form-actions" style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
             <button
               type="button"
               className="btn-cancel"
@@ -948,9 +1106,34 @@ const EditProfilePage: React.FC<{ setCurrentPage: (page: string) => void }> = ({
             >
               Cancel
             </button>
-            <button type="submit" className="btn-primary" disabled={isSaving} style={{ minWidth: '100px', height: '36px', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {isSaving ? 'Saving...' : 'Save Profile'}
-            </button>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                disabled={isDownloadingPdf}
+                onClick={handleDownloadProfilePdf}
+                style={{
+                  minWidth: '120px',
+                  height: '36px',
+                  fontSize: '0.875rem',
+                  border: '1px solid #3b82f6',
+                  borderRadius: '0.375rem',
+                  fontWeight: 500,
+                  cursor: isDownloadingPdf ? 'not-allowed' : 'pointer',
+                  background: 'transparent',
+                  color: '#3b82f6',
+                  opacity: isDownloadingPdf ? 0.7 : 1,
+                }}
+              >
+                {isDownloadingPdf
+                  ? 'Generating...'
+                  : latexContent
+                    ? 'Download resume PDF'
+                    : 'Download profile PDF'}
+              </button>
+              <button type="submit" className="btn-primary" disabled={isSaving} style={{ minWidth: '100px', height: '36px', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {isSaving ? 'Saving...' : 'Save Profile'}
+              </button>
+            </div>
           </div>
         </form>
       )}

@@ -5,6 +5,12 @@ import type { User } from 'firebase/auth';
 import type { UserProfile } from './ProfileModal';
 import BackgroundStars from './BackgroundStars';
 import '../styles/components/CoverLetterPage.css';
+import {
+  readApplyJobContext,
+  clearApplyJobContext,
+  saveApplicationSnapshot,
+  type ApplyJobContext,
+} from '../lib/jobPostings';
 import jsPDF from 'jspdf';
 
 interface ApplyResult {
@@ -19,9 +25,7 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
 
   const [jobDescription, setJobDescription] = useState('');
   const [additionalInstructions, setAdditionalInstructions] = useState('');
-  
-  const [generateCoverLetter, setGenerateCoverLetter] = useState(true);
-  
+
   // Auto-detect provider from API key
   const getDetectedProvider = () => {
     const apiKey = localStorage.getItem('apiKey') || '';
@@ -79,6 +83,9 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
     elapsed_seconds?: number;
   } | null>(null);
   const [showLatexSource, setShowLatexSource] = useState(false);
+  const [applyJobContext, setApplyJobContext] = useState<ApplyJobContext | null>(null);
+  const [activeJobId, setActiveJobId] = useState<string>(() => `job_${Date.now()}`);
+  const [markAppliedMsg, setMarkAppliedMsg] = useState('');
   const [strategyResult, setStrategyResult] = useState<{
     experiences: Array<{
       title: string;
@@ -127,6 +134,17 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
   }, [user]);
 
   useEffect(() => {
+    const ctx = readApplyJobContext();
+    if (ctx) {
+      setApplyJobContext(ctx);
+      setActiveJobId(ctx.job_id);
+      const header = `${ctx.title} at ${ctx.company}\n\n`;
+      setJobDescription(header + ctx.description);
+      clearApplyJobContext();
+    }
+  }, []);
+
+  useEffect(() => {
     if (showModal) {
       document.body.classList.add('modal-open');
     } else {
@@ -166,7 +184,7 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
     setExtractionResult(null);
 
     try {
-      const baseApi = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+      const baseApi = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
       const url = `${baseApi}/extract-keywords`;
 
       const response = await fetch(url, {
@@ -209,7 +227,7 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
     setStrategyResult(null);
 
     try {
-      const baseApi = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+      const baseApi = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
       const url = `${baseApi}/generate-strategy`;
 
       const response = await fetch(url, {
@@ -220,7 +238,7 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
           job_description: jobDescription,
           provider: provider,
           api_key: localStorage.getItem('apiKey') || '',
-          job_id: `job_${Date.now()}`
+          job_id: activeJobId
         })
       });
 
@@ -258,7 +276,7 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
     setShowLatexSource(false);
 
     try {
-      const baseApi = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+      const baseApi = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
       const url = `${baseApi}/generate-resume`;
 
       const response = await fetch(url, {
@@ -269,7 +287,7 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
           job_description: jobDescription,
           provider: provider,
           api_key: localStorage.getItem('apiKey') || '',
-          job_id: `job_${Date.now()}`,
+          job_id: activeJobId,
           latex_template: userProfile.latexContent
         })
       });
@@ -316,6 +334,25 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
     }
   };
 
+  const handleMarkApplied = async () => {
+    if (!user || !applyJobContext) {
+      setError('No linked job from Jobs page to mark as applied.');
+      return;
+    }
+    setMarkAppliedMsg('');
+    try {
+      await saveApplicationSnapshot(user.uid, applyJobContext.job_id, {
+        cover_letter_text: result?.coverLetter || undefined,
+        resume_latex: resumeResult?.latex_source || undefined,
+        strategy_snapshot: strategyResult || resumeResult?.strategy || undefined,
+      });
+      setMarkAppliedMsg('Saved application snapshot. Open the apply link to submit on the employer site.');
+    } catch (err) {
+      console.error(err);
+      setError('Failed to save application snapshot.');
+    }
+  };
+
   const handleGenerate = async () => {
     if (!userProfile) {
       setError('Please complete your profile first');
@@ -331,7 +368,7 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
     setResult(null);
 
     try {
-      const baseApi = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+      const baseApi = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
       const url = `${baseApi}/generate-cover-letter`;
       
       const response = await fetch(url, {
@@ -471,6 +508,21 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
 
 
         <div className="form-section wide-form-section">
+          {applyJobContext && (
+            <div className="apply-job-banner">
+              <strong>{applyJobContext.title}</strong> at {applyJobContext.company}
+              {applyJobContext.apply_url && (
+                <a
+                  href={applyJobContext.apply_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ marginLeft: '1rem' }}
+                >
+                  Open apply link →
+                </a>
+              )}
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h3>Job Description</h3>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', fontSize: '0.85rem', color: '#9ca3af' }}>
@@ -497,21 +549,7 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
           </div>
 
           <div className="form-group" style={{ marginTop: '1.5rem' }}>
-            <label>Options</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                <input
-                  type="checkbox"
-                  checked={generateCoverLetter}
-                  onChange={(e) => setGenerateCoverLetter(e.target.checked)}
-                />
-                <span>Generate cover letter too</span>
-              </label>
-            </div>
-          </div>
-
-          <div className="form-group" style={{ marginTop: '1.5rem' }}>
-            <label htmlFor="additionalInstructions">Additional Instructions (Optional)</label>
+            <label htmlFor="additionalInstructions">Cover Letter Instructions (Optional)</label>
             <textarea
               id="additionalInstructions"
               value={additionalInstructions}
@@ -530,13 +568,11 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
               }}
             />
           </div>
-        </div>
 
-        <div className="wide-form-section">
           {error && (
             <div className="error-message" style={{ textAlign: 'center', marginBottom: '2rem' }}>{error}</div>
           )}
-          <div className="form-actions" style={{ justifyContent: 'center', marginTop: '2rem', gap: '1rem' }}>
+          <div className="form-actions" style={{ justifyContent: 'center', marginTop: '1.5rem', gap: '1rem' }}>
             <button 
               onClick={() => setCurrentPage('profile')}
               className="btn-secondary"
@@ -576,19 +612,25 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
             >
               {isGeneratingResume ? 'Generating Resume...' : 'Generate Resume'}
             </button>
+            {applyJobContext && (
+              <button
+                onClick={handleMarkApplied}
+                className="btn-secondary"
+                style={{ minWidth: 200, borderColor: '#10b981', color: '#10b981' }}
+              >
+                Mark as applied
+              </button>
+            )}
           </div>
+          {markAppliedMsg && (
+            <p style={{ textAlign: 'center', color: '#10b981', marginTop: '1rem' }}>{markAppliedMsg}</p>
+          )}
 
           {extractionResult && (
-            <div style={{
-              marginTop: '2rem',
-              padding: '1.5rem',
-              background: 'rgba(139, 92, 246, 0.05)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
-              borderRadius: '0.75rem'
-            }}>
-              <h3 style={{ color: '#8b5cf6', marginBottom: '0.5rem' }}>Keyword Extraction Results</h3>
+            <div className="apply-result-panel apply-result-panel--purple">
+              <h3>Keyword Extraction Results</h3>
               {(extractionResult.elapsed_seconds !== undefined || extractionResult.token_usage) && (
-                <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '1rem' }}>
+                <p className="meta">
                   {extractionResult.elapsed_seconds !== undefined && <span>{extractionResult.elapsed_seconds}s</span>}
                   {extractionResult.token_usage && (
                     <span> &middot; {extractionResult.token_usage.calls} LLM calls &middot; {extractionResult.token_usage.total_tokens} tokens</span>
@@ -605,14 +647,14 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
                   const isMatched = kw in matched;
                   const isEasy = easy.has(kw);
                   const isDrop = dropped.has(kw);
-                  const color = isMatched ? '#10b981' : isEasy ? '#f59e0b' : isDrop ? '#ef4444' : '#9ca3af';
+                  const color = isMatched ? '#047857' : isEasy ? '#b45309' : isDrop ? '#dc2626' : '#6b7280';
                   const bg = isMatched ? 'rgba(16,185,129,0.12)' : isEasy ? 'rgba(245,158,11,0.12)' : isDrop ? 'rgba(239,68,68,0.12)' : 'rgba(156,163,175,0.12)';
                   const label = isMatched ? '✓' : isEasy ? '+' : isDrop ? '✗' : '?';
                   return (
                     <div key={kw} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
                       <span style={{ background: bg, color, padding: '0.15rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.75rem', fontWeight: 700, minWidth: '1.5rem', textAlign: 'center' }}>{label}</span>
                       <span style={{ color, fontWeight: 600, fontSize: '0.9rem' }}>{kw}</span>
-                      {isMatched && <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>→ {matched[kw].join(', ')}</span>}
+                      {isMatched && <span style={{ color: '#374151', fontSize: '0.8rem' }}>→ {matched[kw].join(', ')}</span>}
                       {isEasy && <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>— add to skills</span>}
                       {isDrop && <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>— no match</span>}
                     </div>
@@ -623,24 +665,24 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
                   <>
                     {extractionResult.must_have?.length > 0 && (
                       <div style={{ marginBottom: '1.25rem' }}>
-                        <h4 style={{ color: '#e2e8f0', marginBottom: '0.5rem', fontSize: '0.95rem' }}>Must-Have ({extractionResult.must_have.length})</h4>
-                        <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.5rem' }}>ATS hard filters — recruiters search for these</p>
+                        <h4>Must-Have ({extractionResult.must_have.length})</h4>
+                        <p className="meta">ATS hard filters — recruiters search for these</p>
                         {extractionResult.must_have.map(renderKeyword)}
                       </div>
                     )}
 
                     {extractionResult.nice_to_have?.length > 0 && (
                       <div style={{ marginBottom: '1.25rem' }}>
-                        <h4 style={{ color: '#e2e8f0', marginBottom: '0.5rem', fontSize: '0.95rem' }}>Nice-to-Have ({extractionResult.nice_to_have.length})</h4>
-                        <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.5rem' }}>Bonus keywords — weave into bullet points</p>
+                        <h4>Nice-to-Have ({extractionResult.nice_to_have.length})</h4>
+                        <p className="meta">Bonus keywords — weave into bullet points</p>
                         {extractionResult.nice_to_have.map(renderKeyword)}
                       </div>
                     )}
 
-                    <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(139,92,246,0.2)' }}>
-                      <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: '#9ca3af' }}>
+                    <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #e5e7eb' }}>
+                      <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: '#6b7280' }}>
                         <span><span style={{ color: '#10b981' }}>✓</span> Matched: {Object.keys(matched).length}</span>
-                        <span><span style={{ color: '#f59e0b' }}>+</span> Easy to add: {extractionResult.easy_no_match.length}</span>
+                        <span><span style={{ color: '#b45309' }}>+</span> Easy to add: {extractionResult.easy_no_match.length}</span>
                         <span><span style={{ color: '#ef4444' }}>✗</span> No match: {extractionResult.drop.length}</span>
                       </div>
                     </div>
@@ -651,16 +693,10 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
           )}
 
           {strategyResult && (
-            <div style={{
-              marginTop: '2rem',
-              padding: '1.5rem',
-              background: 'rgba(16, 185, 129, 0.05)',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
-              borderRadius: '0.75rem'
-            }}>
-              <h3 style={{ color: '#10b981', marginBottom: '0.5rem' }}>Resume Strategy</h3>
+            <div className="apply-result-panel apply-result-panel--green">
+              <h3>Resume Strategy</h3>
               {(strategyResult.elapsed_seconds !== undefined || strategyResult.token_usage) && (
-                <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '1rem' }}>
+                <p className="meta">
                   {strategyResult.elapsed_seconds !== undefined && <span>{strategyResult.elapsed_seconds}s</span>}
                   {strategyResult.token_usage && (
                     <span> &middot; {strategyResult.token_usage.calls} LLM calls &middot; {strategyResult.token_usage.total_tokens} tokens</span>
@@ -670,27 +706,27 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
 
               {strategyResult.title_suggestions.length > 0 && (
                 <div style={{ marginBottom: '1.25rem' }}>
-                  <h4 style={{ color: '#e2e8f0', marginBottom: '0.5rem', fontSize: '0.95rem' }}>Title Suggestions</h4>
+                  <h4>Title Suggestions</h4>
                   {strategyResult.title_suggestions.map((t, i) => (
-                    <div key={i} style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: '#d1d5db' }}>
-                      <span style={{ textDecoration: 'line-through', color: '#6b7280' }}>{t.original}</span>
-                      <span style={{ color: '#f59e0b', margin: '0 0.5rem' }}>→</span>
-                      <span style={{ color: '#10b981', fontWeight: 600 }}>{t.suggested}</span>
-                      <span style={{ color: '#9ca3af', fontSize: '0.8rem', marginLeft: '0.5rem' }}>({t.reason})</span>
+                    <div key={i} className="body-text" style={{ marginBottom: '0.5rem' }}>
+                      <span style={{ textDecoration: 'line-through', color: '#9ca3af' }}>{t.original}</span>
+                      <span style={{ color: '#b45309', margin: '0 0.5rem', fontWeight: 600 }}>→</span>
+                      <span style={{ color: '#047857', fontWeight: 600 }}>{t.suggested}</span>
+                      <span style={{ color: '#6b7280', fontSize: '0.8rem', marginLeft: '0.5rem' }}>({t.reason})</span>
                     </div>
                   ))}
                 </div>
               )}
 
               <div style={{ marginBottom: '1.25rem' }}>
-                <h4 style={{ color: '#e2e8f0', marginBottom: '0.5rem', fontSize: '0.95rem' }}>Skills Section</h4>
-                <div style={{ fontSize: '0.85rem', color: '#d1d5db' }}>
+                <h4>Skills Section</h4>
+                <div className="body-text">
                   <div style={{ marginBottom: '0.5rem' }}>
                     <span style={{ color: '#10b981', fontWeight: 600 }}>Front-load: </span>
                     {strategyResult.skills_strategy.front_load.join(', ') || 'None'}
                   </div>
                   <div style={{ marginBottom: '0.5rem' }}>
-                    <span style={{ color: '#f59e0b', fontWeight: 600 }}>Add: </span>
+                    <span style={{ color: '#b45309', fontWeight: 600 }}>Add: </span>
                     {strategyResult.skills_strategy.add.join(', ') || 'None'}
                   </div>
                   <div style={{ marginBottom: '0.5rem' }}>
@@ -705,14 +741,14 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
               </div>
 
               <div>
-                <h4 style={{ color: '#e2e8f0', marginBottom: '0.5rem', fontSize: '0.95rem' }}>Selected Experiences</h4>
+                <h4>Selected Experiences</h4>
                 {strategyResult.experiences.filter(e => e.should_include).map((exp, i) => (
-                  <div key={i} style={{ marginBottom: '1rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '0.5rem' }}>
-                    <div style={{ fontWeight: 600, color: '#e2e8f0', marginBottom: '0.25rem' }}>{exp.title}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '0.5rem' }}>
+                  <div key={i} style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '0.25rem' }}>{exp.title}</div>
+                    <div className="meta" style={{ marginBottom: '0.5rem' }}>
                       Keywords: {exp.keywords_covered.join(', ')}
                     </div>
-                    <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.85rem', color: '#d1d5db' }}>
+                    <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.85rem', color: '#374151' }}>
                       {exp.dotjots.map((dot, j) => (
                         <li key={j} style={{ marginBottom: '0.25rem' }}>{dot}</li>
                       ))}
@@ -724,16 +760,10 @@ const ApplyPage: React.FC<{ setCurrentPage: (page: string) => void }> = ({ setCu
           )}
 
           {resumeResult && (
-            <div style={{
-              marginTop: '2rem',
-              padding: '1.5rem',
-              background: 'rgba(245, 158, 11, 0.05)',
-              border: '1px solid rgba(245, 158, 11, 0.3)',
-              borderRadius: '0.75rem'
-            }}>
-              <h3 style={{ color: '#f59e0b', marginBottom: '0.5rem' }}>Generated Resume</h3>
+            <div className="apply-result-panel apply-result-panel--amber">
+              <h3>Generated Resume</h3>
               {(resumeResult.elapsed_seconds !== undefined || resumeResult.token_usage) && (
-                <p style={{ fontSize: '0.8rem', color: '#9ca3af', marginBottom: '1rem' }}>
+                <p className="meta">
                   {resumeResult.elapsed_seconds !== undefined && <span>{resumeResult.elapsed_seconds}s</span>}
                   {resumeResult.token_usage && (
                     <span> &middot; {resumeResult.token_usage.calls} LLM calls &middot; {resumeResult.token_usage.total_tokens} tokens</span>

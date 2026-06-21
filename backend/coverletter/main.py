@@ -9,13 +9,14 @@ from datetime import date
 _backend_dir = Path(__file__).parent.parent
 _coverletter_dir = str(_backend_dir / "coverletter")
 _resume_dir = str(_backend_dir / "resume")
-for _p in [str(_backend_dir), _coverletter_dir, _resume_dir]:
+_jobsearch_dir = str(_backend_dir / "jobsearch")
+for _p in [str(_backend_dir), _coverletter_dir, _resume_dir, _jobsearch_dir]:
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List, Optional
 import yaml
 from utils import generate_with_retry, load_file, load_yaml
@@ -27,20 +28,25 @@ from cl_generator import get_best_cl, build_header_prompt
 from extractor import extract_keywords_with_rag
 from strategizer import create_resume_strategy
 from schemas import ResumeStrategy
+from jobsearch import (
+    score_job,
+    build_search_queue,
+    suggest_search_terms_llm,
+    fetch_batch,
+    get_session,
+    reset_session,
+    BATCH_SIZE,
+    clean_job_description,
+)
+from jobsearch.experience import compute_experience_detail, EXPERIENCE_CALC_VERSION
 
 app = FastAPI(title="Cover Letter Generator API", version="1.0.0")
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://skyward-ai.vercel.app",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ],  # React and Vite dev servers
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -351,8 +357,7 @@ async def generate_resume(request: Request):
     import base64
     import time
     from drafter import draft_resume
-    from schemas import JobExtraction
-    
+    from schemas import build_job_extraction_from_keywords
     body = await request.json()
     user_profile = body.get("user_profile", {})
     job_description = body.get("job_description", "")
@@ -395,11 +400,8 @@ async def generate_resume(request: Request):
         
         # Step 3: Draft resume (fill template + compile)
         print(f"[RESUME] Step 3: Drafting resume...")
-        job_extraction = JobExtraction(
-            must_have=extraction.must_have,
-            nice_to_have=extraction.nice_to_have,
-            keyword_to_experiences=extraction.keyword_to_experiences
-        )
+        job_extraction = build_job_extraction_from_keywords(extraction, user_profile)
+        print(f"[RESUME] JobExtraction built: {len(job_extraction.must_have_skills)} must-have skills")
         
         draft = draft_resume(
             strategy=strategy,
@@ -440,13 +442,13 @@ async def generate_resume(request: Request):
                     for e in strategy.selected_experiences
                 ],
                 "skills_strategy": {
-                    "front_load": strategy.skills_strategy.front_load,
-                    "add": strategy.skills_strategy.add,
-                    "keep": strategy.skills_strategy.keep,
-                    "deprioritize": strategy.skills_strategy.deprioritize
+                    "front_load": strategy.skills_strategy.front_load if strategy.skills_strategy else [],
+                    "add": strategy.skills_strategy.add if strategy.skills_strategy else [],
+                    "keep": strategy.skills_strategy.keep if strategy.skills_strategy else [],
+                    "deprioritize": strategy.skills_strategy.deprioritize if strategy.skills_strategy else [],
                 },
                 "title_suggestions": [
-                    {"original": t.original_title, "suggested": t.suggested_title, "reason": t.reason}
+                    {"original": t.original, "suggested": t.suggested, "reason": t.reason}
                     for t in strategy.title_suggestions
                 ]
             },
@@ -461,6 +463,269 @@ async def generate_resume(request: Request):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Resume generation failed: {str(e)}")
+
+
+class SearchJobsRequest(BaseModel):
+    user_profile: dict
+    user_id: str = ""
+    location: str = ""
+    date_posted: str = "week"
+    reset: bool = False
+    seen_job_ids: List[str] = []
+
+
+def _format_job_salary(value) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
+    if isinstance(value, (int, float)):
+        if isinstance(value, float) and value.is_integer():
+            return str(int(value))
+        return str(value)
+    if isinstance(value, dict):
+        min_amt = value.get("min") or value.get("min_amount")
+        max_amt = value.get("max") or value.get("max_amount")
+        if min_amt is not None and max_amt is not None:
+            return f"{min_amt}-{max_amt}"
+        if min_amt is not None:
+            return str(min_amt)
+        if max_amt is not None:
+            return str(max_amt)
+    return str(value)
+
+
+class JobListing(BaseModel):
+    job_id: str
+    title: str
+    company: str
+    location: str
+    description: str
+    description_full: str = ""
+    salary: Optional[str] = None
+    apply_url: Optional[str] = None
+    posted_date: Optional[str] = None
+    relevance_score: float = 0.0
+    tier: str = "D"
+    skill_score: float = 0.0
+    experience_score: float = 0.0
+    value_score: float = 0.0
+    years_required: Optional[float] = None
+    user_years: Optional[float] = None
+    search_term: Optional[str] = None
+
+    @field_validator("salary", mode="before")
+    @classmethod
+    def coerce_salary(cls, value):
+        return _format_job_salary(value)
+
+
+class SearchJobsResponse(BaseModel):
+    jobs: List[JobListing]
+    query: str
+    total_returned: int
+    batch_size: int = BATCH_SIZE
+    total_from_api: int = 0
+    total_skipped_seen: int = 0
+    api_calls: int = 0
+    has_more: bool = False
+
+
+class SuggestSearchTermsRequest(BaseModel):
+    user_profile: dict
+    api_key: str = ""
+    provider: str = "gemini"
+
+
+class SuggestSearchTermsResponse(BaseModel):
+    llmSearchTerms: List[str]
+
+
+@app.post("/suggest-search-terms", response_model=SuggestSearchTermsResponse)
+async def suggest_search_terms_endpoint(request: Request):
+    """Generate hidden LLM search terms from profile (called on profile save)."""
+    try:
+        body = await request.json()
+        req = SuggestSearchTermsRequest(**body)
+        terms = suggest_search_terms_llm(
+            req.user_profile,
+            req.api_key,
+            req.provider,
+        )
+        return SuggestSearchTermsResponse(llmSearchTerms=terms)
+    except Exception as e:
+        print(f"[ERROR] Suggest search terms failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Suggest search terms failed: {str(e)}")
+
+
+@app.post("/search-jobs", response_model=SearchJobsResponse)
+async def search_jobs_endpoint(request: Request):
+    """Fetch a batch of new jobs via JSearch (deduped queue + session ledger)."""
+    try:
+        body = await request.json()
+        req = SearchJobsRequest(**body)
+
+        search_titles = req.user_profile.get("searchTitles", []) or []
+        if not any((t or "").strip() for t in search_titles):
+            raise HTTPException(
+                status_code=400,
+                detail="Add at least one search title on your Profile before searching.",
+            )
+
+        queue = build_search_queue(req.user_profile)
+        query_label = ", ".join([t for t, _ in queue[:3]])
+        if len(queue) > 3:
+            query_label += f" (+{len(queue) - 3} more)"
+
+        if req.reset:
+            session = reset_session(req.user_id)
+        else:
+            session = get_session(req.user_id)
+
+        seen_ids = set(req.seen_job_ids or [])
+
+        print(
+            f"[JOBSEARCH] Terms: {len(queue)}, Location: {req.location}, "
+            f"date_posted: {req.date_posted}, reset: {req.reset}, "
+            f"seen_ids: {len(seen_ids)}, User: {req.user_id or 'anonymous'}"
+        )
+
+        raw_jobs, total_from_api, total_skipped_seen, has_more, api_calls = fetch_batch(
+            session,
+            req.user_profile,
+            seen_ids,
+            date_posted=req.date_posted or "week",
+            location=req.location,
+        )
+
+        job_listings = []
+        for job in raw_jobs:
+            full_desc = clean_job_description(job.get("job_description", "") or "")
+            preview = full_desc[:500] + "..." if len(full_desc) > 500 else full_desc
+            job_for_score = {
+                **job,
+                "job_description": full_desc,
+            }
+            scored = score_job(job_for_score, req.user_profile)
+            job_listings.append(JobListing(
+                job_id=job.get("job_id", ""),
+                title=job.get("job_title", ""),
+                company=job.get("employer_name", ""),
+                location=job.get("job_location", ""),
+                description=preview,
+                description_full=full_desc,
+                salary=_format_job_salary(job.get("job_salary")),
+                apply_url=job.get("job_apply_link", None),
+                posted_date=job.get("job_posted_at_datetime_utc", None),
+                relevance_score=scored.composite_score,
+                tier=scored.tier,
+                skill_score=scored.skill_score,
+                experience_score=scored.experience_score,
+                value_score=scored.value_score,
+                years_required=scored.years_required,
+                user_years=scored.user_years,
+                search_term=job.get("_search_term"),
+            ))
+
+        job_listings.sort(key=lambda j: j.relevance_score, reverse=True)
+
+        return SearchJobsResponse(
+            jobs=job_listings,
+            query=query_label,
+            total_returned=len(job_listings),
+            batch_size=BATCH_SIZE,
+            total_from_api=total_from_api,
+            total_skipped_seen=total_skipped_seen,
+            api_calls=api_calls,
+            has_more=has_more,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[ERROR] Job search failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Job search failed: {str(e)}")
+
+
+class ScoreJobsRequest(BaseModel):
+    user_profile: dict
+    jobs: List[dict]
+
+
+class JobScoreResult(BaseModel):
+    job_id: str
+    relevance_score: float
+    tier: str
+    skill_score: float
+    experience_score: float
+    value_score: float
+    years_required: Optional[float] = None
+    user_years: float = 0.0
+    user_months: Optional[float] = None
+    experience_calc_version: Optional[int] = None
+
+
+class ScoreJobsResponse(BaseModel):
+    scores: List[JobScoreResult]
+    experience_calc_version: Optional[int] = None
+    user_months: Optional[float] = None
+
+
+@app.post("/score-jobs", response_model=ScoreJobsResponse)
+async def score_jobs_endpoint(request: Request):
+    """Rule-based match scores for saved jobs (no LLM, no JSearch)."""
+    try:
+        body = await request.json()
+        req = ScoreJobsRequest(**body)
+        exp_detail = compute_experience_detail(req.user_profile)
+        print(
+            f"[SCORE] experience v{exp_detail['calc_version']}: "
+            f"{exp_detail['total_months']} months -> {exp_detail['user_years']} yrs "
+            f"({len(exp_detail['work_entries'])} work entries)"
+        )
+        scores: List[JobScoreResult] = []
+        for job in req.jobs:
+            job_id = job.get("job_id", "")
+            if not job_id:
+                continue
+            job_for_score = {
+                "job_title": job.get("title", "") or "",
+                "job_description": job.get("description", "") or "",
+            }
+            scored = score_job(job_for_score, req.user_profile)
+            scores.append(JobScoreResult(
+                job_id=job_id,
+                relevance_score=scored.composite_score,
+                tier=scored.tier,
+                skill_score=scored.skill_score,
+                experience_score=scored.experience_score,
+                value_score=scored.value_score,
+                years_required=scored.years_required,
+                user_years=scored.user_years,
+                user_months=exp_detail["total_months"],
+                experience_calc_version=exp_detail["calc_version"],
+            ))
+        return ScoreJobsResponse(
+            scores=scores,
+            experience_calc_version=exp_detail["calc_version"],
+            user_months=exp_detail["total_months"],
+        )
+    except Exception as e:
+        print(f"[ERROR] Score jobs failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Score jobs failed: {str(e)}")
+
+
+@app.post("/experience-breakdown")
+async def experience_breakdown_endpoint(request: Request):
+    """Return months-per-entry experience calculation (for debugging profile dates)."""
+    try:
+        body = await request.json()
+        profile = body.get("user_profile", {})
+        return compute_experience_detail(profile)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Experience breakdown failed: {str(e)}")
 
 
 @app.post("/compile-latex")

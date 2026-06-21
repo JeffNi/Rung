@@ -4,6 +4,8 @@ import HomePage from './components/HomePage';
 import ResumePage from './components/ResumePage';
 import ApplyPage from './components/ApplyPage';
 import ProfilePage from './components/EditProfilePage';
+import JobSearchPage from './components/JobSearchPage';
+import StoredJobsPage from './components/StoredJobsPage';
 import LoginPage from './components/LoginPage';
 import AccountPage from './components/AccountPage';
 import { useParallax } from './hooks/useParallax';
@@ -37,6 +39,10 @@ function App() {
         return <HomePage />;
       case 'resume':
         return <ResumePage />;
+      case 'jobsearch':
+        return <JobSearchPage setCurrentPage={setCurrentPage} />;
+      case 'savedjobs':
+        return <StoredJobsPage setCurrentPage={setCurrentPage} />;
       case 'apply':
         return <ApplyPage setCurrentPage={setCurrentPage} />;
       case 'profile':
@@ -101,6 +107,18 @@ function App() {
               onClick={() => handleNavClick('profile')}
             >
               Profile
+            </button>
+            <button 
+              className={`nav-link ${currentPage === 'jobsearch' ? 'active' : ''}`}
+              onClick={() => handleNavClick('jobsearch')}
+            >
+              Jobs
+            </button>
+            <button 
+              className={`nav-link ${currentPage === 'savedjobs' ? 'active' : ''}`}
+              onClick={() => handleNavClick('savedjobs')}
+            >
+              Saved
             </button>
             <button 
               className={`nav-link ${currentPage === 'apply' ? 'active' : ''}`}

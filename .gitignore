@@ -18,7 +18,9 @@ dist/
 downloads/
 eggs/
 .eggs/
+# Python packaging lib/ — not frontend/src/lib (shared TS modules)
 lib/
+!frontend/src/lib/
 lib64/
 parts/
 sdist/

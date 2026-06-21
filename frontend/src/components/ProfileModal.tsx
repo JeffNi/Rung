@@ -32,6 +32,9 @@ export interface UserProfile {
   writingSample?: string;
   latexUrl?: string | null;
   latexContent?: string | null;
+  searchTitles?: string[];
+  skillsToLearn?: string[];
+  llmSearchTerms?: string[];
 }
 
 interface ProfileModalProps {
